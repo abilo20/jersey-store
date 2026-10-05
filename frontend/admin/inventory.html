@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Matrix | Mira Sport Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-header"></header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h2 class="admin-card-title">Live Inventory Matrix</h2>
+            <div style="font-size:0.85rem; color:var(--text-muted);">Real-time stock quantities by jersey, size, and edition variant</div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <select id="stock-filter" class="form-select" style="font-size:0.88rem; padding:8px 14px; width:auto;">
+              <option value="all">All Inventory</option>
+              <option value="low">Low Stock (&le; 5 units)</option>
+              <option value="out">Out of Stock (0 units)</option>
+              <option value="in">In Stock (> 5 units)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Team</th>
+                <th>Variant / Edition</th>
+                <th>Size</th>
+                <th>Units in Stock</th>
+                <th>Stock Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-tbody">
+              <tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-muted);">Loading inventory...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { renderAdminLayout, adminApiRequest, showAdminToast, playAdminSound } from '/js/admin.js';
+
+    renderAdminLayout('inventory', 'Inventory Matrix');
+
+    let allInventory = [];
+
+    async function loadInventory() {
+      try {
+        const res = await adminApiRequest('/inventory');
+        allInventory = res.inventory || [];
+        renderTable();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderTable() {
+      const filter = document.getElementById('stock-filter').value;
+      const tbody = document.getElementById('inventory-tbody');
+
+      let filtered = allInventory;
+      if (filter === 'low') {
+        filtered = allInventory.filter(i => i.stock_quantity > 0 && i.stock_quantity <= 5);
+      } else if (filter === 'out') {
+        filtered = allInventory.filter(i => i.stock_quantity === 0);
+      } else if (filter === 'in') {
+        filtered = allInventory.filter(i => i.stock_quantity > 5);
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-muted);">No inventory items matching this filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(i => {
+        let statusTag = '';
+        if (i.stock_quantity === 0) {
+          statusTag = '<span class="status-pill rejected">Out of Stock</span>';
+        } else if (i.stock_quantity <= 5) {
+          statusTag = '<span class="status-pill pending">Low Stock</span>';
+        } else {
+          statusTag = '<span class="status-pill verified">In Stock</span>';
+        }
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <img src="${i.product_image || '/uploads/products/product-placeholder.jpg'}" style="width:40px; height:40px; border-radius:var(--radius-xs); object-fit:cover; border:1px solid var(--border);" />
+                <strong style="color:var(--primary); font-size:0.92rem;">${i.product_name}</strong>
+              </div>
+            </td>
+            <td>${i.team}</td>
+            <td><strong>${i.variant_name}</strong></td>
+            <td><strong style="font-size:1rem; font-family:var(--font-mono);">${i.size}</strong></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input type="number" class="form-input stock-input" data-id="${i.id}" value="${i.stock_quantity}" min="0" style="width:80px; padding:6px 10px; font-weight:800; font-family:var(--font-mono);" />
+                <button type="button" class="btn btn-outline btn-sm save-stock-btn" data-id="${i.id}">Update</button>
+              </div>
+            </td>
+            <td>${statusTag}</td>
+            <td>
+              <a href="/admin/products.html" class="btn btn-ghost btn-sm">Edit Kit</a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('.save-stock-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          const input = tbody.querySelector(`.stock-input[data-id="${id}"]`);
+          const newQty = parseInt(input.value, 10);
+          if (isNaN(newQty) || newQty < 0) {
+            playAdminSound('error');
+            showAdminToast('Please enter a valid stock quantity (0 or greater).', 'error', 'Invalid Input');
+            return;
+          }
+
+          try {
+            await adminApiRequest(`/inventory/${id}`, {
+              method: 'PUT',
+              body: JSON.stringify({ stock_quantity: newQty })
+            });
+            playAdminSound('success');
+            showAdminToast(`Stock updated to ${newQty} units`, 'success', 'Stock Saved');
+            btn.textContent = 'Saved!';
+            btn.style.color = 'var(--success)';
+            setTimeout(() => {
+              btn.textContent = 'Update';
+              btn.style.color = '';
+              loadInventory();
+            }, 800);
+          } catch (err) {
+            playAdminSound('error');
+            showAdminToast(err.message || 'Error updating stock', 'error', 'Action Failed');
+          }
+        });
+      });
+    }
+
+    document.getElementById('stock-filter').addEventListener('change', renderTable);
+    loadInventory();
+  </script>
+</body>
+</html>

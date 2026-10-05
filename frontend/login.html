@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Login | Mira Sport</title>
+  <meta name="description" content="Sign in to your Mira Sport account to track orders, manage saved kits, and access your profile.">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .auth-wrapper {
+      max-width: 440px;
+      margin: 40px auto 60px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 32px 28px;
+      box-shadow: var(--shadow-sm);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header"></header>
+  <div id="mobile-top-bar" class="mobile-top-bar"></div>
+
+  <main class="container">
+    <div class="auth-wrapper">
+      <div style="text-align:center; margin-bottom:24px;">
+        <span class="brand-mark" style="margin:0 auto;">M</span>
+        <h1 style="font-size:1.6rem; font-weight:900; color:var(--primary); margin-top:6px;">Sign In to Your Account</h1>
+        <p style="font-size:0.88rem; color:var(--text-muted); margin-top:4px;">Manage orders, saved jerseys, and shipping addresses.</p>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="email-input" class="form-input" placeholder="name@example.com" required autocomplete="email" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="password-input" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-login-btn">Sign In &rarr;</button>
+        <a href="/api/auth/google" class="btn btn-outline btn-block btn-lg" style="margin-top:10px;text-align:center;">Continue with Google</a>
+      </form>
+
+      <div style="text-align:center; margin-top:24px; padding-top:18px; border-top:1px solid var(--border-light); font-size:0.88rem; color:var(--text-muted);">
+        Don't have an account yet? <a href="/register.html" style="font-weight:800; color:var(--accent);">Create one here</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer"></footer>
+  <nav class="mobile-nav"></nav>
+
+  <script type="module">
+    import { renderStoreNavigation, apiRequest, showToast, setAuth, isLoggedIn } from '/js/api.js';
+
+    renderStoreNavigation('profile');
+
+    if (isLoggedIn()) {
+      window.location.href = '/profile.html';
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get('redirect') || '/profile.html';
+    const googleToken = urlParams.get('google_token');
+    const googleName = urlParams.get('google_name');
+    if (googleToken) {
+      setAuth(googleToken, { full_name: googleName || 'Google User' });
+      window.location.replace(redirectUrl);
+    }
+    if (urlParams.get('google') === 'error') showToast('Google sign-in could not be completed. Check Google OAuth settings.', 'error');
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submit-login-btn');
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+
+      try {
+        const res = await apiRequest('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: document.getElementById('email-input').value.trim(),
+            password: document.getElementById('password-input').value
+          })
+        });
+
+        setAuth(res.token, res.user);
+        showToast('Logged in successfully!', 'success');
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 600);
+      } catch (err) {
+        showToast(err.message || 'Login failed. Please check your credentials.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Sign In →';
+      }
+    });
+  </script>
+</body>
+</html>

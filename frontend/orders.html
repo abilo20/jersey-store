@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders | Mira Sport</title>
+  <meta name="description" content="View your order history, fulfillment status, and repurchase previous kits.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <header class="header"></header>
+  <div id="mobile-top-bar" class="mobile-top-bar"></div>
+
+  <main class="container">
+    <div style="padding: 16px 0 8px;">
+      <h1 style="font-size:1.85rem; font-weight:900; color:var(--primary);">My Orders</h1>
+      <div style="font-size:0.88rem; color:var(--text-muted);">View and track all your previous football jersey purchases.</div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="orders-empty-view" class="empty-state" style="display:none;">
+      <div class="empty-state-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </div>
+      <div class="empty-state-title">No orders yet</div>
+      <p class="empty-state-desc">You haven't placed any football jersey orders yet.</p>
+      <a href="/shop.html" class="btn btn-primary">Start Shopping</a>
+    </div>
+
+    <!-- Orders List -->
+    <div id="orders-list-container" style="display:flex; flex-direction:column; gap:18px; margin: 24px 0 48px;">
+      <!-- Populated dynamically -->
+      <div style="text-align:center; padding:40px; color:var(--text-muted);">Loading your order history...</div>
+    </div>
+  </main>
+
+  <footer class="footer"></footer>
+  <nav class="mobile-nav"></nav>
+
+  <script type="module">
+    import { renderStoreNavigation, apiRequest, getIcon, showToast, isLoggedIn } from '/js/api.js';
+
+    renderStoreNavigation('profile');
+
+    if (!isLoggedIn()) {
+      window.location.href = '/login.html?redirect=/orders.html';
+    }
+
+    async function loadOrders() {
+      const container = document.getElementById('orders-list-container');
+      const emptyView = document.getElementById('orders-empty-view');
+
+      try {
+        const res = await apiRequest('/orders/user');
+        if (!res.orders || res.orders.length === 0) {
+          container.style.display = 'none';
+          emptyView.style.display = 'block';
+          return;
+        }
+
+        container.style.display = 'flex';
+        emptyView.style.display = 'none';
+
+        container.innerHTML = res.orders.map(order => {
+          const itemsSummary = (order.items || []).map(it => `
+            <div style="display:flex; align-items:center; gap:10px; font-size:0.85rem;">
+              <img src="${it.product_image || '/uploads/products/product-placeholder.jpg'}" style="width:40px; height:40px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border);" />
+              <div>
+                <strong style="color:var(--text);">${it.product_name}</strong>
+                <span style="color:var(--text-muted);">(${it.size}, Qty: ${it.quantity}) ${it.player_name ? `Print: ${it.player_name} #${it.player_number}` : ''}</span>
+              </div>
+            </div>
+          `).join('');
+
+          return `
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+                <div>
+                  <div style="font-size:0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Order Number</div>
+                  <div style="font-family:var(--font-mono); font-size:1.15rem; font-weight:900; color:var(--primary);">${order.order_number}</div>
+                  <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Placed on ${new Date(order.created_at).toLocaleDateString()}</div>
+                </div>
+
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <span class="status-pill ${order.order_status.toLowerCase().replace(/[^a-z]+/g, '-')}">${order.order_status}</span>
+                  <span class="status-pill ${order.payment_status.toLowerCase().replace(/[^a-z]+/g, '-')}">${order.payment_status}</span>
+                </div>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:8px; padding:12px 0; border-top:1px solid var(--border-light); border-bottom:1px solid var(--border-light);">
+                ${itemsSummary}
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:14px;">
+                <div style="font-size:0.92rem;">
+                  Total: <strong style="font-size:1.15rem; color:var(--primary);">${order.total.toLocaleString()} ETB</strong>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                  <a href="/tracking.html?order=${order.order_number}" class="btn btn-outline btn-sm">
+                    Track Order
+                  </a>
+                  <button type="button" class="btn btn-primary btn-sm buy-again-btn" data-order="${order.order_number}">
+                    Buy Again
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Attach "Buy Again" listeners (Strict Rule 22: actually adds items back to cart!)
+        container.querySelectorAll('.buy-again-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const orderNum = btn.getAttribute('data-order');
+            btn.disabled = true;
+            btn.textContent = 'Adding to cart...';
+            try {
+              const res = await apiRequest(`/orders/${orderNum}/buy-again`, { method: 'POST' });
+              if (res.items && res.items.length > 0) {
+                for (const item of res.items) {
+                  await apiRequest('/cart/add', {
+                    method: 'POST',
+                    body: JSON.stringify(item)
+                  });
+                }
+                showToast('Previous items added back to your cart!', 'success');
+                setTimeout(() => window.location.href = '/cart.html', 800);
+              }
+            } catch (err) {
+              showToast(err.message || 'Error repeating order', 'error');
+              btn.disabled = false;
+              btn.textContent = 'Buy Again';
+            }
+          });
+        });
+
+      } catch (err) {
+        showToast('Error loading orders', 'error');
+      }
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>

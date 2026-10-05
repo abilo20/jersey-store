@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Orders | Mira Sport Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-header"></header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h2 class="admin-card-title">Customer Orders Management</h2>
+
+          <!-- Filters Bar -->
+          <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+            <input type="text" id="order-search-input" class="form-input" placeholder="Search order #, customer, phone..." style="width:260px; padding:8px 14px; font-size:0.88rem;" />
+
+            <select id="status-filter" class="form-select" style="width:auto; padding:8px 14px; font-size:0.88rem;">
+              <option value="">All Order Statuses</option>
+              <option value="Order Placed">Order Placed</option>
+              <option value="Payment Submitted">Payment Submitted</option>
+              <option value="Payment Verification Pending">Payment Verification Pending</option>
+              <option value="Payment Verified">Payment Verified</option>
+              <option value="Processing">Processing</option>
+              <option value="Packed">Packed</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Out for Delivery">Out for Delivery</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+
+            <select id="payment-status-filter" class="form-select" style="width:auto; padding:8px 14px; font-size:0.88rem;">
+              <option value="">All Payment Statuses</option>
+              <option value="Pending Verification">Pending Verification</option>
+              <option value="Verified">Verified</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Contact</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Method</th>
+                <th>Payment Status</th>
+                <th>Order Status</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr><td colspan="10" style="text-align:center; padding:32px; color:var(--text-muted);">Loading orders...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Order Details & Status Update Modal -->
+  <div class="modal-overlay" id="order-modal">
+    <div class="modal-box" style="max-width:680px;">
+      <button type="button" class="modal-close-btn" id="close-order-modal">&times;</button>
+      <h3 style="font-size:1.3rem; font-weight:800; color:var(--primary); margin-bottom:4px;" id="modal-order-number">Order Details</h3>
+      <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:18px;" id="modal-order-tracking"></div>
+
+      <!-- Customer & Shipping Information -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; background:var(--surface-alt); border-radius:var(--radius-md); padding:16px; margin-bottom:18px; font-size:0.88rem;">
+        <div>
+          <div style="font-weight:800; color:var(--primary); margin-bottom:4px;">Customer Info:</div>
+          <div id="m-cust-name" style="font-weight:700;"></div>
+          <div id="m-cust-contact" style="color:var(--text-muted);"></div>
+        </div>
+        <div>
+          <div style="font-weight:800; color:var(--primary); margin-bottom:4px;">Delivery Address:</div>
+          <div id="m-cust-addr" style="color:var(--text-muted);"></div>
+        </div>
+      </div>
+
+      <!-- Items List -->
+      <div style="margin-bottom:18px;">
+        <h4 style="font-size:0.95rem; font-weight:800; color:var(--primary); margin-bottom:10px;">Ordered Jerseys:</h4>
+        <div id="modal-order-items" style="display:flex; flex-direction:column; gap:10px;"></div>
+      </div>
+
+      <!-- Financial Summary -->
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px; margin-bottom:18px; font-size:0.88rem;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span>Subtotal:</span>
+          <span id="m-subtotal" style="font-weight:700;"></span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span>Delivery Fee:</span>
+          <span id="m-shipping" style="font-weight:700;"></span>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-top:1px solid var(--border-light); padding-top:6px; font-size:1.1rem; font-weight:900; color:var(--primary);">
+          <span>Total:</span>
+          <span id="m-total" style="color:var(--accent);"></span>
+        </div>
+      </div>
+
+      <!-- Payment Proof Widget -->
+      <div style="border:1px solid var(--border); border-radius:var(--radius-md); padding:14px; margin-bottom:18px;">
+        <div style="font-weight:800; font-size:0.92rem; color:var(--primary); margin-bottom:8px;">Payment Proof &amp; Verification:</div>
+        <div id="modal-proof-content"></div>
+      </div>
+
+      <!-- Status Update Form -->
+      <form id="order-status-update-form">
+        <input type="hidden" id="update-order-id" />
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Update Order Status</label>
+            <select id="update-order-status-select" class="form-select">
+              <option value="Order Placed">Order Placed</option>
+              <option value="Payment Submitted">Payment Submitted</option>
+              <option value="Payment Verification Pending">Payment Verification Pending</option>
+              <option value="Payment Verified">Payment Verified</option>
+              <option value="Processing">Processing</option>
+              <option value="Packed">Packed</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Out for Delivery">Out for Delivery</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled (Restocks items)</option>
+              <option value="Returned">Returned</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Update Payment Status</label>
+            <select id="update-payment-status-select" class="form-select">
+              <option value="Pending Verification">Pending Verification</option>
+              <option value="Verified">Verified</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" id="rejection-reason-group" style="display:none;">
+          <label class="form-label">Rejection / Cancellation Reason *</label>
+          <input type="text" id="update-rejection-reason" class="form-input" placeholder="State reason clearly for the customer" />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="save-order-status-btn">Save Order Status Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { renderAdminLayout, adminApiRequest, showAdminToast, playAdminSound } from '/js/admin.js';
+
+    renderAdminLayout('orders', 'Orders Management');
+
+    let allOrders = [];
+
+    async function loadOrders() {
+      const search = document.getElementById('order-search-input').value.trim();
+      const status = document.getElementById('status-filter').value;
+      const paymentStatus = document.getElementById('payment-status-filter').value;
+
+      const q = new URLSearchParams();
+      if (search) q.set('search', search);
+      if (status) q.set('status', status);
+      if (paymentStatus) q.set('payment_status', paymentStatus);
+
+      try {
+        const res = await adminApiRequest(`/orders?${q.toString()}`);
+        allOrders = res.orders || [];
+        renderOrdersTable();
+      } catch (err) {
+        console.error('Error fetching orders:', err);
+      }
+    }
+
+    function renderOrdersTable() {
+      const tbody = document.getElementById('orders-tbody');
+      if (allOrders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:32px; color:var(--text-muted);">No orders matching filters.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allOrders.map(o => `
+        <tr>
+          <td><strong style="font-family:var(--font-mono); color:var(--primary);">${o.order_number}</strong></td>
+          <td>${o.customer_name}</td>
+          <td>${o.customer_phone}</td>
+          <td>${o.item_count} items</td>
+          <td><strong>${o.total.toLocaleString()} ETB</strong></td>
+          <td>${o.payment_method}</td>
+          <td><span class="status-pill ${o.payment_status.toLowerCase().replace(/[^a-z]+/g, '-')}">${o.payment_status}</span></td>
+          <td><span class="status-pill ${o.order_status.toLowerCase().replace(/[^a-z]+/g, '-')}">${o.order_status}</span></td>
+          <td>${new Date(o.created_at).toLocaleDateString()}</td>
+          <td>
+            <button type="button" class="btn btn-outline btn-sm view-order-btn" data-id="${o.id}">
+              Details &amp; Status
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      tbody.querySelectorAll('.view-order-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openOrderModal(btn.getAttribute('data-id'));
+        });
+      });
+    }
+
+    // Modal
+    const orderModal = document.getElementById('order-modal');
+    document.getElementById('close-order-modal').addEventListener('click', () => {
+      orderModal.classList.remove('open');
+    });
+
+    async function openOrderModal(orderId) {
+      try {
+        const res = await adminApiRequest(`/orders/${orderId}`);
+        const o = res.order;
+
+        document.getElementById('update-order-id').value = o.id;
+        document.getElementById('modal-order-number').textContent = `Order ${o.order_number}`;
+        document.getElementById('modal-order-tracking').textContent = `Tracking Code: ${o.tracking_code} | Placed: ${new Date(o.created_at).toLocaleString()}`;
+
+        document.getElementById('m-cust-name').textContent = o.customer_name;
+        document.getElementById('m-cust-contact').textContent = `${o.customer_phone || ''} | ${o.customer_email || ''}`;
+        document.getElementById('m-cust-addr').textContent = `${o.address || ''}, ${o.city || ''} (${o.region || ''}) — Notes: ${o.delivery_notes || 'None'}`;
+
+        // Items
+        document.getElementById('modal-order-items').innerHTML = o.items.map(it => `
+          <div style="display:flex; align-items:center; gap:12px; background:var(--surface-alt); border-radius:var(--radius-sm); padding:10px;">
+            <img src="${it.product_image || '/uploads/products/product-placeholder.jpg'}" style="width:48px; height:48px; border-radius:var(--radius-xs); object-fit:cover; border:1px solid var(--border);" />
+            <div style="flex:1;">
+              <div style="font-weight:700; color:var(--text);">${it.product_name}</div>
+              <div style="font-size:0.78rem; color:var(--text-muted);">Size: <strong>${it.size}</strong> &bull; Variant: ${it.variant_name} &bull; Qty: ${it.quantity}</div>
+              ${it.player_name ? `<div style="font-size:0.75rem; color:var(--accent); font-weight:700;">CUSTOM PRINT: ${it.player_name} #${it.player_number}</div>` : ''}
+            </div>
+            <div style="font-weight:800; color:var(--primary);">${it.total_price.toLocaleString()} ETB</div>
+          </div>
+        `).join('');
+
+        document.getElementById('m-subtotal').textContent = `${o.subtotal.toLocaleString()} ETB`;
+        document.getElementById('m-shipping').textContent = `${o.shipping_cost.toLocaleString()} ETB (${o.shipping_method_name || 'Standard'})`;
+        document.getElementById('m-total').textContent = `${o.total.toLocaleString()} ETB`;
+
+        // Proof widget
+        const proofBox = document.getElementById('modal-proof-content');
+        if (o.payment_proofs && o.payment_proofs.length > 0) {
+          const pp = o.payment_proofs[0];
+          proofBox.innerHTML = `
+            <div style="display:flex; gap:16px; align-items:center;">
+              <a href="${pp.screenshot_url}" target="_blank">
+                <img src="${pp.screenshot_url}" class="proof-thumbnail" style="width:72px; height:72px;" alt="Receipt" />
+              </a>
+              <div>
+                <div>Reference Code: <strong style="font-family:var(--font-mono); font-size:1.05rem;">${pp.transaction_reference}</strong></div>
+                <div>Submitted: ${new Date(pp.submitted_at).toLocaleString()}</div>
+                <div>Status: <span class="status-pill ${pp.status.toLowerCase().replace(/[^a-z]+/g, '-')}">${pp.status}</span></div>
+              </div>
+            </div>
+          `;
+        } else {
+          proofBox.innerHTML = `<span style="color:var(--text-muted); font-size:0.85rem;">No payment proof submitted yet for this order.</span>`;
+        }
+
+        // Form selects
+        document.getElementById('update-order-status-select').value = o.order_status;
+        document.getElementById('update-payment-status-select').value = o.payment_status;
+        document.getElementById('update-rejection-reason').value = o.rejection_reason || '';
+
+        checkRejectionVisibility();
+        orderModal.classList.add('open');
+      } catch (err) {
+        showAdminToast('Failed to load order details.', 'error', 'Order Details');
+      }
+    }
+
+    function checkRejectionVisibility() {
+      const orderSt = document.getElementById('update-order-status-select').value;
+      const paySt = document.getElementById('update-payment-status-select').value;
+      const rGroup = document.getElementById('rejection-reason-group');
+      if (orderSt === 'Cancelled' || paySt === 'Rejected') {
+        rGroup.style.display = 'block';
+      } else {
+        rGroup.style.display = 'none';
+      }
+    }
+
+    document.getElementById('update-order-status-select').addEventListener('change', checkRejectionVisibility);
+    document.getElementById('update-payment-status-select').addEventListener('change', checkRejectionVisibility);
+
+    // Save order changes
+    document.getElementById('order-status-update-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('update-order-id').value;
+      const order_status = document.getElementById('update-order-status-select').value;
+      const payment_status = document.getElementById('update-payment-status-select').value;
+      const rejection_reason = document.getElementById('update-rejection-reason').value.trim();
+
+      try {
+        await adminApiRequest(`/orders/${id}/status`, {
+          method: 'PUT',
+          body: JSON.stringify({ order_status, payment_status, rejection_reason })
+        });
+        playAdminSound('success');
+        showAdminToast(`Order status updated to ${order_status} / ${payment_status}`, 'success', 'Order Updated');
+        orderModal.classList.remove('open');
+        loadOrders();
+      } catch (err) {
+        playAdminSound('error');
+        showAdminToast(err.message || 'Error updating order', 'error', 'Update Failed');
+      }
+    });
+
+    document.getElementById('order-search-input').addEventListener('input', loadOrders);
+    document.getElementById('status-filter').addEventListener('change', loadOrders);
+    document.getElementById('payment-status-filter').addEventListener('change', loadOrders);
+
+    loadOrders();
+
+    // Live update on new order placement or payment submission
+    window.addEventListener('admin:new-order', () => {
+      loadOrders();
+    });
+    window.addEventListener('admin:payment-submitted', () => {
+      loadOrders();
+    });
+  </script>
+</body>
+</html>

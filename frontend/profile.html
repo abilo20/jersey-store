@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile | Mira Sport</title>
+  <meta name="description" content="Manage your customer profile, view orders, manage delivery addresses, and update security settings.">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .profile-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+      margin: 24px 0 48px;
+    }
+    @media (min-width: 900px) {
+      .profile-layout {
+        grid-template-columns: 280px 1fr;
+        gap: 36px;
+      }
+    }
+    .profile-nav-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px 20px;
+      height: fit-content;
+    }
+    .profile-tab-btn {
+      width: 100%;
+      text-align: left;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s;
+      margin-bottom: 4px;
+    }
+    .profile-tab-btn:hover, .profile-tab-btn.active {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .profile-tab-pane {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: none;
+    }
+    .profile-tab-pane.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header"></header>
+  <div id="mobile-top-bar" class="mobile-top-bar"></div>
+
+  <main class="container">
+    <div style="padding: 16px 0 8px;">
+      <h1 style="font-size:1.85rem; font-weight:900; color:var(--primary);">My Account</h1>
+      <div style="font-size:0.88rem; color:var(--text-muted);" id="user-welcome-label">Manage your profile, addresses, and order history</div>
+    </div>
+
+    <div class="profile-layout">
+      
+      <!-- Left Sidebar Tabs -->
+      <div class="profile-nav-card">
+        <div style="text-align:center; padding-bottom:18px; border-bottom:1px solid var(--border-light); margin-bottom:16px;">
+          <div style="width:68px; height:68px; border-radius:var(--radius-full); background:var(--accent-soft); color:var(--accent); font-size:1.8rem; font-weight:900; display:flex; align-items:center; justify-content:center; margin:0 auto 10px;">
+            <span id="user-avatar-initial">U</span>
+          </div>
+          <div style="font-weight:900; font-size:1.1rem; color:var(--primary);" id="profile-name-disp">User Name</div>
+          <div style="font-size:0.82rem; color:var(--text-muted);" id="profile-email-disp">user@example.com</div>
+        </div>
+
+        <nav style="display:flex; flex-direction:column;">
+          <button type="button" class="profile-tab-btn active" data-tab="tab-overview">
+            <span>Profile Overview</span>
+            <span>&rarr;</span>
+          </button>
+          <a href="/orders.html" class="profile-tab-btn">
+            <span>My Orders</span>
+            <span class="badge-tag" id="tab-orders-count">0</span>
+          </a>
+          <a href="/favorites.html" class="profile-tab-btn">
+            <span>Favorites</span>
+            <span class="badge-tag" id="tab-favorite-count">0</span>
+          </a>
+          <button type="button" class="profile-tab-btn" data-tab="tab-addresses">
+            <span>Delivery Addresses</span>
+            <span>&rarr;</span>
+          </button>
+          <button type="button" class="profile-tab-btn" data-tab="tab-security">
+            <span>Security &amp; Password</span>
+            <span>&rarr;</span>
+          </button>
+          <button type="button" class="profile-tab-btn" data-tab="tab-notifications">
+            <span>Notifications</span>
+            <span id="profile-notification-count" class="badge-tag" style="display:none;">0</span>
+          </button>
+          <button type="button" class="profile-tab-btn" id="logout-btn" style="color:var(--error); margin-top:12px; border-top:1px solid var(--border-light); padding-top:16px;">
+            <span>Log Out</span>
+            <span></span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Right Tab Panes -->
+      <div>
+        
+        <!-- Tab 1: Profile Overview -->
+        <div class="profile-tab-pane active" id="tab-overview">
+          <h2 style="font-size:1.25rem; font-weight:800; color:var(--primary); margin-bottom:20px;">Edit Profile Information</h2>
+
+          <form id="edit-profile-form">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="prof-name-input" class="form-input" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email Address (Read-only)</label>
+              <input type="email" id="prof-email-input" class="form-input" disabled style="background:var(--surface-alt); opacity:0.8;" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="tel" id="prof-phone-input" class="form-input" placeholder="+251 911 234 567" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="save-profile-btn">Save Profile Changes</button>
+          </form>
+        </div>
+
+        <!-- Tab 2: Addresses -->
+        <div class="profile-tab-pane" id="tab-addresses">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="font-size:1.25rem; font-weight:800; color:var(--primary);">Saved Delivery Addresses</h2>
+            <button type="button" class="btn btn-primary btn-sm" id="open-address-modal-btn">+ Add New Address</button>
+          </div>
+
+          <div id="addresses-list-container" style="display:flex; flex-direction:column; gap:12px;">
+            <div style="color:var(--text-muted); font-size:0.9rem;">Loading addresses...</div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Security & Password -->
+        <div class="profile-tab-pane" id="tab-security">
+          <h2 style="font-size:1.25rem; font-weight:800; color:var(--primary); margin-bottom:20px;">Change Password</h2>
+
+          <form id="change-password-form">
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input type="password" id="curr-password-input" class="form-input" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input type="password" id="new-password-input" class="form-input" minlength="6" required />
+              <div class="form-help">Minimum 6 characters</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <input type="password" id="confirm-password-input" class="form-input" minlength="6" required />
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="save-password-btn">Update Password</button>
+          </form>
+        </div>
+
+        <!-- Tab 4: Notifications -->
+        <div class="profile-tab-pane" id="tab-notifications">
+          <h2 style="font-size:1.25rem; font-weight:800; color:var(--primary); margin-bottom:8px;">Notification Preferences</h2>
+          <p style="font-size:.86rem; color:var(--text-muted); margin-bottom:20px;">Choose which account updates you want to receive.</p>
+          <div id="notification-preferences" style="display:flex; flex-direction:column; gap:10px;"></div>
+          <button type="button" class="btn btn-primary" id="save-notification-prefs" style="margin-top:18px;">Save Notification Preferences</button>
+          <button type="button" class="btn btn-outline" id="profile-enable-push" style="margin:18px 0 0 8px;">Enable Browser Notifications</button>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Add Address Modal -->
+  <div class="modal-overlay" id="address-modal">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" id="close-address-modal">&times;</button>
+      <h3 style="font-size:1.25rem; font-weight:800; color:var(--primary); margin-bottom:16px;">Add Delivery Address</h3>
+
+      <form id="add-address-form">
+        <div class="form-group">
+          <label class="form-label">Address Label</label>
+          <input type="text" id="addr-label" class="form-input" placeholder="e.g. Home, Office" value="Home" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Recipient Name</label>
+          <input type="text" id="addr-name" class="form-input" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input type="tel" id="addr-phone" class="form-input" placeholder="+251 9..." required />
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Region</label>
+            <input type="text" id="addr-region" class="form-input" value="Addis Ababa" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">City</label>
+            <input type="text" id="addr-city" class="form-input" value="Addis Ababa" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Street / House / Landmark</label>
+          <input type="text" id="addr-street" class="form-input" placeholder="e.g. Street, building, landmark" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:14px;">Save Address</button>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer"></footer>
+  <nav class="mobile-nav"></nav>
+
+  <script type="module">
+    import { renderStoreNavigation, apiRequest, showToast, isLoggedIn, logout, getUser, enableWebPush } from '/js/api.js';
+
+    renderStoreNavigation('profile');
+
+    if (!isLoggedIn()) {
+      window.location.href = '/login.html?redirect=/profile.html';
+    }
+
+    // Tab switching
+    document.querySelectorAll('.profile-tab-btn[data-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.profile-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.profile-tab-pane').forEach(p => p.classList.remove('active'));
+
+        btn.classList.add('active');
+        const tabId = btn.getAttribute('data-tab');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', logout);
+
+    function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch])); }
+
+    async function loadUserProfile() {
+      try {
+        const res = await apiRequest('/auth/me');
+        const user = res.user;
+
+        document.getElementById('profile-name-disp').textContent = user.full_name;
+        document.getElementById('profile-email-disp').textContent = user.email;
+        document.getElementById('user-avatar-initial').textContent = user.full_name.charAt(0).toUpperCase();
+
+        document.getElementById('prof-name-input').value = user.full_name;
+        document.getElementById('prof-email-input').value = user.email;
+        document.getElementById('prof-phone-input').value = user.phone || '';
+
+        document.getElementById('tab-orders-count').textContent = user.total_orders || 0;
+        document.getElementById('tab-favorite-count').textContent = user.total_favorites || 0;
+
+        loadAddresses();
+        loadNotificationPreferences();
+      } catch (err) {
+        showToast('Session expired. Please log in again.');
+        logout();
+      }
+    }
+
+    // Save profile form
+    document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const res = await apiRequest('/auth/profile', {
+          method: 'PUT',
+          body: JSON.stringify({
+            full_name: document.getElementById('prof-name-input').value.trim(),
+            phone: document.getElementById('prof-phone-input').value.trim()
+          })
+        });
+        showToast(res.message, 'success');
+        document.getElementById('profile-name-disp').textContent = res.user.full_name;
+      } catch (err) {
+        showToast(err.message || 'Error updating profile', 'error');
+      }
+    });
+
+    // Change password form
+    document.getElementById('change-password-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const curr = document.getElementById('curr-password-input').value;
+      const newP = document.getElementById('new-password-input').value;
+      const conf = document.getElementById('confirm-password-input').value;
+
+      if (newP !== conf) {
+        showToast('New passwords do not match', 'error');
+        return;
+      }
+
+      try {
+        const res = await apiRequest('/auth/password', {
+          method: 'PUT',
+          body: JSON.stringify({ current_password: curr, new_password: newP })
+        });
+        showToast(res.message, 'success');
+        document.getElementById('change-password-form').reset();
+      } catch (err) {
+        showToast(err.message || 'Error updating password', 'error');
+      }
+    });
+
+    // Notification preferences
+    const preferenceDefinitions = [
+      ['order_updates', 'Order updates'],
+      ['payment_updates', 'Payment updates'],
+      ['delivery_updates', 'Delivery updates'],
+      ['review_updates', 'Review updates'],
+      ['promotional_updates', 'Promotional updates'],
+      ['restock_updates', 'Restock alerts']
+    ];
+
+    async function loadNotificationPreferences() {
+      try {
+        const res = await apiRequest('/notifications/preferences');
+        const prefs = res.preferences || {};
+        document.getElementById('notification-preferences').innerHTML = preferenceDefinitions.map(([key, label]) => `
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 15px;border:1px solid var(--border);border-radius:12px;">
+            <span style="font-weight:700;">${label}</span>
+            <input type="checkbox" data-pref="${key}" ${prefs[key] ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--accent);">
+          </label>
+        `).join('');
+        const count = Number((await apiRequest('/notifications/unread-count')).count || 0);
+        const badge = document.getElementById('profile-notification-count');
+        badge.textContent = count; badge.style.display = count ? 'inline-flex' : 'none';
+      } catch (err) {}
+    }
+
+    document.getElementById('save-notification-prefs').addEventListener('click', async () => {
+      const payload = {};
+      document.querySelectorAll('[data-pref]').forEach(input => payload[input.dataset.pref] = input.checked);
+      try {
+        await apiRequest('/notifications/preferences', { method:'PUT', body:JSON.stringify(payload) });
+        showToast('Notification preferences saved.', 'success');
+      } catch (err) { showToast(err.message || 'Unable to save notification preferences.', 'error'); }
+    });
+
+    document.getElementById('profile-enable-push').addEventListener('click', async () => {
+      try { await enableWebPush(); showToast('Browser notifications enabled.', 'success'); }
+      catch (err) { showToast(err.message || 'Unable to enable browser notifications.', 'error'); }
+    });
+
+    // Addresses
+    async function loadAddresses() {
+      const container = document.getElementById('addresses-list-container');
+      try {
+        const res = await apiRequest('/auth/addresses');
+        if (!res.addresses || res.addresses.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state" style="padding:24px;">
+              <div class="empty-state-title" style="font-size:1rem;">No saved addresses yet</div>
+              <p class="empty-state-desc" style="font-size:0.82rem;">Add a delivery address to expedite your checkout process.</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = res.addresses.map(a => `
+          <div style="background:var(--surface-alt); border-radius:var(--radius-md); padding:16px; display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <strong>${escapeHtml(a.label)}</strong>
+                ${a.is_default ? '<span class="badge-tag" style="background:var(--accent); color:#fff;">Default</span>' : ''}
+              </div>
+              <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">
+                ${escapeHtml(a.recipient_name)} &bull; ${escapeHtml(a.phone)}<br>
+                ${escapeHtml(a.street_address)}, ${escapeHtml(a.city)} (${escapeHtml(a.region)})
+              </div>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm del-addr-btn" data-id="${a.id}" style="color:var(--error);">Delete</button>
+          </div>
+        `).join('');
+
+        container.querySelectorAll('.del-addr-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            await apiRequest(`/auth/addresses/${id}`, { method: 'DELETE' });
+            showToast('Address removed');
+            loadAddresses();
+        loadNotificationPreferences();
+          });
+        });
+      } catch (e) {
+        container.innerHTML = '<div style="color:var(--error);">Failed to load addresses</div>';
+      }
+    }
+
+    // Address Modal
+    const addrModal = document.getElementById('address-modal');
+    document.getElementById('open-address-modal-btn').addEventListener('click', () => {
+      addrModal.classList.add('open');
+      const u = getUser();
+      if (u) {
+        document.getElementById('addr-name').value = u.full_name;
+        document.getElementById('addr-phone').value = u.phone || '';
+      }
+    });
+
+    document.getElementById('close-address-modal').addEventListener('click', () => {
+      addrModal.classList.remove('open');
+    });
+
+    document.getElementById('add-address-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await apiRequest('/auth/addresses', {
+          method: 'POST',
+          body: JSON.stringify({
+            label: document.getElementById('addr-label').value.trim(),
+            recipient_name: document.getElementById('addr-name').value.trim(),
+            phone: document.getElementById('addr-phone').value.trim(),
+            region: document.getElementById('addr-region').value.trim(),
+            city: document.getElementById('addr-city').value.trim(),
+            street_address: document.getElementById('addr-street').value.trim(),
+            is_default: 1
+          })
+        });
+        showToast('Address added', 'success');
+        addrModal.classList.remove('open');
+        document.getElementById('add-address-form').reset();
+        loadAddresses();
+        loadNotificationPreferences();
+      } catch (err) {
+        showToast(err.message || 'Error adding address', 'error');
+      }
+    });
+
+    loadUserProfile();
+  </script>
+</body>
+</html>

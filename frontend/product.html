@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Jersey Details | Mira Sport</title>
+  <meta name="description" content="View authentic football kit details, select your size and edition, customize with player name and number, and order with fast Ethiopian delivery.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <header class="header"></header>
+  <div id="mobile-top-bar" class="mobile-top-bar"></div>
+
+  <main class="container">
+    <!-- Breadcrumb -->
+    <div style="padding: 16px 0 8px; font-size:0.85rem; color:var(--text-muted);">
+      <a href="/index.html">Home</a> &gt; <a href="/shop.html">Shop Kits</a> &gt; <span id="breadcrumb-title" style="color:var(--text); font-weight:600;">Product Details</span>
+    </div>
+
+    <!-- Loading State -->
+    <div id="product-loading" style="text-align:center; padding:80px 0; color:var(--text-muted);">
+      Loading kit details...
+    </div>
+
+    <!-- Product Layout Container -->
+    <div id="product-content" style="display:none;">
+      <div class="product-detail-layout">
+        
+        <!-- Left Column: Gallery -->
+        <div class="gallery-container">
+          <div class="gallery-main" id="main-image-wrap">
+            <img id="main-product-img" src="" alt="Jersey Preview" />
+            <button type="button" class="like-button-corner" id="product-like-btn" title="Like this kit">
+              <span id="product-like-icon"></span>
+            </button>
+          </div>
+          <div class="gallery-thumbs" id="gallery-thumbs-list">
+            <!-- Thumbs injected -->
+          </div>
+        </div>
+
+        <!-- Right Column: Product Details & Order Form -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span class="badge-tag" id="prod-category-badge" style="background:var(--accent-soft); color:var(--accent);">Club Kits</span>
+            <span id="prod-stock-indicator" class="stock-tag in-stock">In Stock</span>
+          </div>
+
+          <h1 id="prod-title" style="font-size:1.75rem; font-weight:900; color:var(--primary); line-height:1.25;">Jersey Name</h1>
+
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div id="prod-rating-stars" style="display:flex; align-items:center; gap:4px; font-size:0.92rem; color:#F59E0B;"></div>
+            <span id="prod-likes-badge" style="font-size:0.82rem; color:var(--text-muted); font-weight:600;">0 likes</span>
+          </div>
+
+          <!-- Price Display -->
+          <div style="display:flex; align-items:baseline; gap:12px; margin: 4px 0 8px;">
+            <span id="prod-effective-price" style="font-size:1.9rem; font-weight:900; color:var(--primary);">0 ETB</span>
+            <span id="prod-old-price" style="font-size:1.1rem; color:var(--text-subtle); text-decoration:line-through; display:none;">0 ETB</span>
+            <span id="prod-discount-badge" class="badge-tag tag-sale" style="display:none;">-15%</span>
+          </div>
+
+          <!-- Fast Delivery Info Notice -->
+          <div style="background:var(--surface-alt); border-radius:var(--radius-md); padding:10px 14px; font-size:0.85rem; color:var(--text-muted); display:flex; align-items:center; gap:8px;">
+            <span style="color:var(--accent);" id="delivery-clock-icon"></span>
+            <span>Order within Addis Ababa for 24-48h dispatch. Nationwide regional EMS delivery available.</span>
+          </div>
+
+          <!-- Variant Selector -->
+          <div id="variant-section" style="margin-top:8px;">
+            <div style="font-size:0.88rem; font-weight:800; color:var(--primary); margin-bottom:8px;">Select Edition / Variant</div>
+            <div id="variants-pill-group" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+          </div>
+
+          <!-- Size Selector -->
+          <div style="margin-top:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:0.88rem; font-weight:800; color:var(--primary);">Select Size</span>
+              <span style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Standard Athletic Fit</span>
+            </div>
+            <div class="size-pill-group" id="sizes-pill-group">
+              <!-- Sizes injected -->
+            </div>
+          </div>
+
+          <!-- Customization Section -->
+          <div class="customization-box" id="customization-container" style="display:none;">
+            <div class="customization-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-weight:800; font-size:0.95rem; color:var(--primary);">Jersey Customization</span>
+                <span class="customization-badge">+<span id="custom-price-badge">250</span> ETB</span>
+              </div>
+              <span style="font-size:0.75rem; color:var(--text-muted);">Official Vinyl Heat Transfer</span>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:12px; margin-top:10px;">
+              <div>
+                <label class="form-label" style="font-size:0.78rem;">Player / Your Name</label>
+                <input type="text" id="custom-name-input" class="form-input" placeholder="e.g. MESSI" maxlength="15" style="text-transform:uppercase; font-weight:800; letter-spacing:1px;" />
+              </div>
+              <div>
+                <label class="form-label" style="font-size:0.78rem;">Number</label>
+                <input type="text" id="custom-number-input" class="form-input" placeholder="10" maxlength="2" style="text-align:center; font-weight:900; font-size:1.1rem;" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Quantity and Action Buttons -->
+          <div style="display:flex; gap:12px; align-items:center; margin-top:14px;">
+            <div class="quantity-stepper">
+              <button type="button" class="qty-btn" id="qty-minus">&minus;</button>
+              <span class="qty-display" id="qty-val">1</span>
+              <button type="button" class="qty-btn" id="qty-plus">&plus;</button>
+            </div>
+
+            <button type="button" class="btn btn-outline btn-block" id="add-to-cart-btn" style="flex:1;">
+              <span id="cart-btn-icon"></span>
+              <span>Add to Cart</span>
+            </button>
+          </div>
+
+          <button type="button" class="btn btn-primary btn-block btn-lg" id="buy-now-btn" style="margin-top:6px;">
+            Buy Now &rarr;
+          </button>
+
+          <!-- Accordion Information -->
+          <div class="accordion">
+            <div class="accordion-item">
+              <button type="button" class="accordion-header" data-target="acc-desc">
+                <span>Description &amp; Kit Features</span>
+                <span class="accordion-arrow">&darr;</span>
+              </button>
+              <div class="accordion-content" id="acc-desc" style="display:block;">
+                <p id="prod-description-text" style="margin-bottom:12px;"></p>
+                <div id="prod-features-list" style="white-space:pre-line;"></div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <button type="button" class="accordion-header" data-target="acc-material">
+                <span>Material &amp; Specifications</span>
+                <span class="accordion-arrow">&darr;</span>
+              </button>
+              <div class="accordion-content" id="acc-material" style="display:none;">
+                <p id="prod-material-text"></p>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <button type="button" class="accordion-header" data-target="acc-shipping">
+                <span>Ethiopian Delivery &amp; Payment</span>
+                <span class="accordion-arrow">&darr;</span>
+              </button>
+              <div class="accordion-content" id="acc-shipping" style="display:none;">
+                <p>• <strong>Addis Ababa Standard:</strong> 2 - 3 business days (150 ETB)</p>
+                <p>• <strong>Addis Ababa Express:</strong> Same day or next day dispatch (300 ETB)</p>
+                <p>• <strong>Regional Ethiopia:</strong> 3 - 5 business days via EMS / Ethiopian Post (400 ETB)</p>
+                <p style="margin-top:8px;">Payments accepted through Commercial Bank of Ethiopia (CBE), Bank of Abyssinia, and Telebirr with manual transaction verification.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Rating & Reviews Section -->
+      <section style="margin: 48px 0; border-top: 1px solid var(--border); padding-top: 36px;">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Customer Reviews &amp; Ratings</h2>
+            <div style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">Honest feedback from verified football supporters</div>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" id="open-review-modal-btn">Write a Review</button>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr; gap:32px;" id="reviews-summary-layout">
+          <!-- Big Score & Breakdown -->
+          <div style="display:flex; flex-wrap:wrap; gap:36px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
+            <div style="text-align:center; min-width:140px;">
+              <div style="font-size:3.5rem; font-weight:900; color:var(--primary); line-height:1;" id="rev-big-score">0.0</div>
+              <div style="color:#F59E0B; font-size:1.2rem; margin: 4px 0;" id="rev-big-stars">★★★★★</div>
+              <div style="font-size:0.85rem; color:var(--text-muted);" id="rev-count-label">0 Verified Reviews</div>
+            </div>
+
+            <div style="flex:1; min-width:240px; display:flex; flex-direction:column; gap:8px;" id="star-breakdown-bars">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Reviews List -->
+          <div id="approved-reviews-list" style="display:flex; flex-direction:column; gap:16px;">
+            <!-- Rendered from approved reviews only -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Related Products -->
+      <section style="margin-top: 48px;">
+        <div class="section-header">
+          <h2 class="section-title">You Might Also Like</h2>
+        </div>
+        <div id="related-products-grid" class="product-grid"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Submit Review Modal -->
+  <div class="modal-overlay" id="review-modal">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" id="close-review-modal">&times;</button>
+      <h3 style="font-size:1.3rem; font-weight:800; color:var(--primary); margin-bottom:6px;">Review This Jersey</h3>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:18px;">Your review helps fellow fans. All submissions are moderated before appearing publicly.</p>
+
+      <form id="submit-review-form">
+        <div class="form-group">
+          <label class="form-label">Your Rating</label>
+          <div id="modal-star-picker" style="display:flex; gap:8px; font-size:1.8rem; color:#CBD5E1; cursor:pointer;">
+            <span data-star="1">★</span>
+            <span data-star="2">★</span>
+            <span data-star="3">★</span>
+            <span data-star="4">★</span>
+            <span data-star="5">★</span>
+          </div>
+          <input type="hidden" id="review-rating-val" value="5" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Your Name</label>
+          <input type="text" id="review-user-name" class="form-input" placeholder="e.g. Yonas Tadesse" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Review Headline</label>
+          <input type="text" id="review-title" class="form-input" placeholder="e.g. Perfect fit and authentic badge quality" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Detailed Comments</label>
+          <textarea id="review-comment" class="form-textarea" rows="4" placeholder="How does the fabric feel? How is the sizing and custom printing?" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Attach Photo (Optional)</label>
+          <input type="file" id="review-image-file" class="form-input" accept="image/*" />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-review-submit-btn">Submit Review for Moderation</button>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer"></footer>
+  <nav class="mobile-nav"></nav>
+
+  <script type="module">
+    import { renderStoreNavigation, apiRequest, getIcon, showToast, trackRecentlyViewed, getSessionId, getUser, updateNavBadges } from '/js/api.js';
+
+    renderStoreNavigation('');
+
+    document.getElementById('delivery-clock-icon').innerHTML = getIcon('clock', 16);
+    document.getElementById('cart-btn-icon').innerHTML = getIcon('bag', 18);
+    document.getElementById('product-like-icon').innerHTML = getIcon('heart', 18);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const slug = urlParams.get('slug') || urlParams.get('id') || '';
+
+    let currentProduct = null;
+    let selectedSize = '';
+    let selectedVariant = '';
+    let quantity = 1;
+
+    // Load Product Data
+    async function loadProductDetails() {
+      if (!slug) {
+        document.getElementById('product-loading').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-title">Product not specified</div>
+            <a href="/shop.html" class="btn btn-primary">Browse All Jerseys</a>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const res = await apiRequest(`/products/${slug}?client_id=${getSessionId()}`);
+        currentProduct = res.product;
+
+        document.getElementById('product-loading').style.display = 'none';
+        document.getElementById('product-content').style.display = 'block';
+
+        trackRecentlyViewed(currentProduct);
+        renderProductData();
+      } catch (e) {
+        document.getElementById('product-loading').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-title">Jersey Not Found</div>
+            <p class="empty-state-desc">This football kit may have been removed or the link is incorrect.</p>
+            <a href="/shop.html" class="btn btn-primary">Return to Shop</a>
+          </div>
+        `;
+      }
+    }
+
+    function renderProductData() {
+      const p = currentProduct;
+      document.title = `${p.name} | Mira Sport`;
+      document.getElementById('breadcrumb-title').textContent = p.name;
+      document.getElementById('prod-title').textContent = p.name;
+      document.getElementById('prod-category-badge').textContent = p.category_name || 'Football Kit';
+      document.getElementById('prod-description-text').textContent = p.description || 'Authentic team match jersey.';
+      document.getElementById('prod-features-list').textContent = p.features || '';
+      document.getElementById('prod-material-text').textContent = p.material || '100% Recycled Polyester';
+      document.getElementById('prod-likes-badge').textContent = `${p.likes_count || 0} supporters liked this`;
+
+      // Like state
+      const likeBtn = document.getElementById('product-like-btn');
+      if (p.isLiked) likeBtn.classList.add('liked');
+
+      // Gallery Images
+      const mainImg = document.getElementById('main-product-img');
+      const thumbsContainer = document.getElementById('gallery-thumbs-list');
+      const allImages = p.images && p.images.length > 0
+        ? p.images
+        : [{ image_url: p.primary_image || '/uploads/products/product-placeholder.jpg', is_primary: 1 }];
+
+      mainImg.src = allImages[0].image_url;
+
+      thumbsContainer.innerHTML = allImages.map((img, idx) => `
+        <div class="thumb-item ${idx === 0 ? 'active' : ''}" data-src="${img.image_url}">
+          <img src="${img.image_url}" alt="Thumbnail" />
+        </div>
+      `).join('');
+
+      thumbsContainer.querySelectorAll('.thumb-item').forEach(th => {
+        th.addEventListener('click', () => {
+          thumbsContainer.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
+          th.classList.add('active');
+          mainImg.src = th.getAttribute('data-src');
+        });
+      });
+
+      // Price & Discount
+      if (p.old_price && p.old_price > p.price) {
+        document.getElementById('prod-old-price').textContent = `${p.old_price.toLocaleString()} ETB`;
+        document.getElementById('prod-old-price').style.display = 'inline';
+        const discPercent = Math.round(((p.old_price - p.price) / p.old_price) * 100);
+        const discBadge = document.getElementById('prod-discount-badge');
+        discBadge.textContent = `-${discPercent}%`;
+        discBadge.style.display = 'inline-block';
+      }
+
+      // Stock
+      const stockEl = document.getElementById('prod-stock-indicator');
+      if (p.total_stock <= 0) {
+        stockEl.className = 'stock-tag out-stock';
+        stockEl.textContent = 'Out of Stock';
+        document.getElementById('add-to-cart-btn').disabled = true;
+        document.getElementById('buy-now-btn').disabled = true;
+      } else if (p.total_stock <= 5) {
+        stockEl.className = 'stock-tag low-stock';
+        stockEl.textContent = `Low Stock (${p.total_stock} left)`;
+      } else {
+        stockEl.className = 'stock-tag in-stock';
+        stockEl.textContent = 'In Stock';
+      }
+
+      // Variants
+      const variantGroup = document.getElementById('variants-pill-group');
+      if (p.variants && p.variants.length > 0) {
+        selectedVariant = p.variants[0].name;
+        variantGroup.innerHTML = p.variants.map((v, i) => `
+          <button type="button" class="size-btn ${i === 0 ? 'active' : ''}" data-v="${v.name}" style="height:38px; border-radius:var(--radius-full);">
+            ${v.name}
+          </button>
+        `).join('');
+
+        variantGroup.querySelectorAll('.size-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            variantGroup.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedVariant = btn.getAttribute('data-v');
+          });
+        });
+      } else {
+        document.getElementById('variant-section').style.display = 'none';
+        selectedVariant = 'Home';
+      }
+
+      // Sizes
+      const sizesGroup = document.getElementById('sizes-pill-group');
+      if (p.sizes && p.sizes.length > 0) {
+        // default select first available size
+        const firstAvail = p.sizes.find(s => s.stock > 0);
+        selectedSize = firstAvail ? firstAvail.size : '';
+
+        sizesGroup.innerHTML = p.sizes.map(s => {
+          const isAvail = s.stock > 0;
+          const isSelected = isAvail && s.size === selectedSize;
+          return `
+            <button type="button" class="size-btn ${isSelected ? 'active' : ''} ${!isAvail ? 'disabled' : ''}"
+              data-size="${s.size}" ${!isAvail ? 'disabled title="Out of stock"' : ''}>
+              ${s.size}
+            </button>
+          `;
+        }).join('');
+
+        sizesGroup.querySelectorAll('.size-btn:not(.disabled)').forEach(btn => {
+          btn.addEventListener('click', () => {
+            sizesGroup.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedSize = btn.getAttribute('data-size');
+          });
+        });
+      }
+
+      // Customization Option
+      const customBox = document.getElementById('customization-container');
+      if (p.is_customizable) {
+        customBox.style.display = 'block';
+        document.getElementById('custom-price-badge').textContent = (p.customization_price || 250).toLocaleString();
+
+        const nameInput = document.getElementById('custom-name-input');
+        const numInput = document.getElementById('custom-number-input');
+
+        const updatePrice = () => {
+          const hasCustom = Boolean(nameInput.value.trim() || numInput.value.trim());
+          const cost = hasCustom ? (p.customization_price || 250) : 0;
+          const unit = p.price + cost;
+          document.getElementById('prod-effective-price').textContent = `${unit.toLocaleString()} ETB`;
+        };
+
+        nameInput.addEventListener('input', updatePrice);
+        numInput.addEventListener('input', updatePrice);
+      }
+
+      // Initial price display
+      document.getElementById('prod-effective-price').textContent = `${p.price.toLocaleString()} ETB`;
+
+      // Render Reviews & Score
+      renderReviews(p.reviews, p.avg_rating, p.review_count);
+
+      // Related
+      if (p.related && p.related.length > 0) {
+        document.getElementById('related-products-grid').innerHTML = p.related.map(r => `
+          <div class="product-card">
+            <div class="product-image-wrap">
+              <a href="/product.html?slug=${r.slug}" style="display:block; width:100%; height:100%;">
+                <img src="${r.primary_image || '/uploads/products/product-placeholder.jpg'}" alt="${r.name}"/>
+              </a>
+            </div>
+            <div class="product-info">
+              <div class="product-team">${r.team}</div>
+              <a href="/product.html?slug=${r.slug}" class="product-title">${r.name}</a>
+              <div class="product-price-row">
+                <span class="price-current">${r.price.toLocaleString()} ETB</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderReviews(reviews, avgRating, reviewCount) {
+      const bigScore = document.getElementById('rev-big-score');
+      const bigStars = document.getElementById('rev-big-stars');
+      const countLabel = document.getElementById('rev-count-label');
+      const barsContainer = document.getElementById('star-breakdown-bars');
+      const listContainer = document.getElementById('approved-reviews-list');
+
+      const count = reviewCount || (reviews ? reviews.length : 0);
+      const score = avgRating || 0;
+
+      bigScore.textContent = count > 0 ? Number(score).toFixed(1) : '0.0';
+      bigStars.textContent = '★'.repeat(Math.round(score)) + '☆'.repeat(5 - Math.round(score));
+      countLabel.textContent = `${count} Verified Review${count === 1 ? '' : 's'}`;
+
+      // Star bars
+      barsContainer.innerHTML = [5, 4, 3, 2, 1].map(stars => {
+        const starCount = reviews ? reviews.filter(r => r.rating === stars).length : 0;
+        const percent = count > 0 ? Math.round((starCount / count) * 100) : 0;
+        return `
+          <div style="display:flex; align-items:center; gap:10px; font-size:0.82rem;">
+            <span style="width:50px; font-weight:700;">${stars} Stars</span>
+            <div style="flex:1; height:8px; background:var(--surface-alt); border-radius:4px; overflow:hidden;">
+              <div style="width:${percent}%; height:100%; background:#F59E0B; border-radius:4px;"></div>
+            </div>
+            <span style="width:36px; text-align:right; color:var(--text-muted);">${starCount}</span>
+          </div>
+        `;
+      }).join('');
+
+      // Reviews list (Strict Rule 2 & 3: Honest empty state if none)
+      if (!reviews || reviews.length === 0) {
+        listContainer.innerHTML = `
+          <div class="empty-state" style="padding:32px 20px; margin:10px 0;">
+            <div class="empty-state-title" style="font-size:1.1rem;">No reviews yet</div>
+            <p class="empty-state-desc" style="font-size:0.88rem;">Be the first football supporter to share your feedback on this kit.</p>
+          </div>
+        `;
+      } else {
+        listContainer.innerHTML = reviews.map(r => `
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+              <div>
+                <div style="font-weight:800; font-size:0.95rem; color:var(--primary);">${r.user_name}</div>
+                <div style="color:#F59E0B; font-size:0.9rem;">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+              </div>
+              <span style="font-size:0.78rem; color:var(--text-subtle);">${new Date(r.created_at).toLocaleDateString()}</span>
+            </div>
+            <div style="font-weight:700; font-size:0.92rem; color:var(--text); margin-bottom:6px;">${r.title}</div>
+            <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5;">${r.comment}</p>
+            ${r.image_url ? `<img src="${r.image_url}" alt="Review photo" style="margin-top:12px; width:90px; height:90px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border);" />` : ''}
+          </div>
+        `).join('');
+      }
+    }
+
+    // Stepper logic
+    document.getElementById('qty-minus').addEventListener('click', () => {
+      if (quantity > 1) {
+        quantity--;
+        document.getElementById('qty-val').textContent = quantity;
+      }
+    });
+
+    document.getElementById('qty-plus').addEventListener('click', () => {
+      quantity++;
+      document.getElementById('qty-val').textContent = quantity;
+    });
+
+    // Accordion toggle
+    document.querySelectorAll('.accordion-header').forEach(hdr => {
+      hdr.addEventListener('click', () => {
+        const targetId = hdr.getAttribute('data-target');
+        const content = document.getElementById(targetId);
+        const isOpen = content.style.display === 'block';
+        content.style.display = isOpen ? 'none' : 'block';
+        hdr.querySelector('.accordion-arrow').innerHTML = isOpen ? '&darr;' : '&uarr;';
+      });
+    });
+
+    // Like Toggle
+    document.getElementById('product-like-btn').addEventListener('click', async () => {
+      if (!currentProduct) return;
+      try {
+        const res = await apiRequest(`/products/${currentProduct.id}/like`, {
+          method: 'POST',
+          body: JSON.stringify({ client_id: getSessionId() })
+        });
+        const btn = document.getElementById('product-like-btn');
+        if (res.liked) {
+          btn.classList.add('liked');
+          showToast('Added to liked jerseys', 'success');
+        } else {
+          btn.classList.remove('liked');
+          showToast('Removed from liked jerseys');
+        }
+        document.getElementById('prod-likes-badge').textContent = `${res.likes_count} supporters liked this`;
+      } catch (err) {
+        showToast('Unable to update like', 'error');
+      }
+    });
+
+    // Add to Cart helper
+    async function performAddToCart() {
+      if (!selectedSize) {
+        showToast('Please select a jersey size', 'error');
+        return false;
+      }
+
+      const nameVal = document.getElementById('custom-name-input')?.value || '';
+      const numVal = document.getElementById('custom-number-input')?.value || '';
+
+      try {
+        await apiRequest('/cart/add', {
+          method: 'POST',
+          body: JSON.stringify({
+            product_id: currentProduct.id,
+            size: selectedSize,
+            variant_name: selectedVariant || 'Home',
+            player_name: nameVal.trim().toUpperCase(),
+            player_number: numVal.trim().toUpperCase(),
+            quantity: quantity,
+            session_id: getSessionId()
+          })
+        });
+
+        await updateNavBadges();
+        showToast(`Added ${quantity}x ${currentProduct.name} to your cart`, 'success');
+        return true;
+      } catch (e) {
+        showToast(e.message || 'Error adding to cart', 'error');
+        return false;
+      }
+    }
+
+    document.getElementById('add-to-cart-btn').addEventListener('click', performAddToCart);
+
+    // Buy Now -> Add to cart and redirect straight to checkout
+    document.getElementById('buy-now-btn').addEventListener('click', async () => {
+      const ok = await performAddToCart();
+      if (ok) {
+        window.location.href = '/checkout.html';
+      }
+    });
+
+    // Review Modal logic
+    const reviewModal = document.getElementById('review-modal');
+    document.getElementById('open-review-modal-btn').addEventListener('click', () => {
+      reviewModal.classList.add('open');
+      const u = getUser();
+      if (u) document.getElementById('review-user-name').value = u.full_name;
+    });
+
+    document.getElementById('close-review-modal').addEventListener('click', () => {
+      reviewModal.classList.remove('open');
+    });
+
+    // Star picker
+    let selectedRating = 5;
+    const starPicker = document.getElementById('modal-star-picker');
+    starPicker.querySelectorAll('span').forEach(sp => {
+      sp.addEventListener('click', () => {
+        selectedRating = parseInt(sp.getAttribute('data-star'), 10);
+        document.getElementById('review-rating-val').value = selectedRating;
+        starPicker.querySelectorAll('span').forEach(s => {
+          const val = parseInt(s.getAttribute('data-star'), 10);
+          s.style.color = val <= selectedRating ? '#F59E0B' : '#CBD5E1';
+        });
+      });
+    });
+
+    // Submit Review form
+    document.getElementById('submit-review-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submit-review-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      const formData = new FormData();
+      formData.append('rating', selectedRating.toString());
+      formData.append('title', document.getElementById('review-title').value.trim());
+      formData.append('comment', document.getElementById('review-comment').value.trim());
+      formData.append('user_name', document.getElementById('review-user-name').value.trim());
+
+      const fileInput = document.getElementById('review-image-file');
+      if (fileInput.files.length > 0) {
+        formData.append('image', fileInput.files[0]);
+      }
+
+      try {
+        const res = await apiRequest(`/reviews/product/${currentProduct.id}`, {
+          method: 'POST',
+          body: formData
+        });
+
+        reviewModal.classList.remove('open');
+        showToast(res.message, 'success');
+        document.getElementById('submit-review-form').reset();
+      } catch (err) {
+        showToast(err.message || 'Error submitting review', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Review for Moderation';
+      }
+    });
+
+    loadProductDetails();
+  </script>
+</body>
+</html>

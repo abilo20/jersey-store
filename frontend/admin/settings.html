@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store &amp; Payment Settings | Mira Sport Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-header"></header>
+
+    <main class="admin-content">
+      <form id="settings-form">
+        
+        <!-- General Store Branding Settings -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <div>
+              <h2 class="admin-card-title">Store Branding &amp; Contact Details</h2>
+              <div style="font-size:0.85rem; color:var(--text-muted);">Configurable store information stored securely in the database</div>
+            </div>
+          </div>
+
+          <div style="padding:24px; display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+              <label class="form-label">Store Brand Name</label>
+              <input type="text" id="s-store-name" class="form-input" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Store Currency Code</label>
+              <input type="text" id="s-currency-code" class="form-input" style="font-weight:700; text-transform:uppercase;" value="ETB" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Store Tagline</label>
+              <input type="text" id="s-store-tagline" class="form-input" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Customer Support Email</label>
+              <input type="email" id="s-store-email" class="form-input" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Customer Support Phone / Hotline</label>
+              <input type="text" id="s-store-phone" class="form-input" required />
+            </div>
+
+            <div class="form-group" style="grid-column:span 2;">
+              <label class="form-label">Store Physical Address (Addis Ababa)</label>
+              <input type="text" id="s-store-address" class="form-input" required />
+            </div>
+          </div>
+        </div>
+
+        <!-- Ethiopian Payment Accounts Settings -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <div>
+              <h2 class="admin-card-title">Ethiopian Payment Accounts Configuration</h2>
+              <div style="font-size:0.85rem; color:var(--text-muted);">
+                Configurable bank and wallet accounts presented to customers at checkout.
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:24px; display:flex; flex-direction:column; gap:24px;">
+            
+            <!-- CBE -->
+            <div style="background:#FAF5FF; border:1px solid #D8B4FE; border-radius:var(--radius-md); padding:18px;">
+              <h3 style="font-size:1.05rem; font-weight:800; color:#6B21A8; margin-bottom:12px;">Commercial Bank of Ethiopia (CBE)</h3>
+              
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div class="form-group">
+                  <label class="form-label">CBE Account Number</label>
+                  <input type="text" id="s-cbe-acc" class="form-input" style="font-family:var(--font-mono); font-weight:700;" required />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Account Holder Name</label>
+                  <input type="text" id="s-cbe-name" class="form-input" required />
+                </div>
+
+                <div class="form-group" style="grid-column:span 2; margin-bottom:0;">
+                  <label class="form-label">Customer Transfer Instructions</label>
+                  <textarea id="s-cbe-inst" class="form-textarea" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Abyssinia -->
+            <div style="background:#FDF2F8; border:1px solid #FBCFE8; border-radius:var(--radius-md); padding:18px;">
+              <h3 style="font-size:1.05rem; font-weight:800; color:#9D174D; margin-bottom:12px;">Bank of Abyssinia (BOA)</h3>
+              
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div class="form-group">
+                  <label class="form-label">BOA Account Number</label>
+                  <input type="text" id="s-boa-acc" class="form-input" style="font-family:var(--font-mono); font-weight:700;" required />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Account Holder Name</label>
+                  <input type="text" id="s-boa-name" class="form-input" required />
+                </div>
+
+                <div class="form-group" style="grid-column:span 2; margin-bottom:0;">
+                  <label class="form-label">Customer Transfer Instructions</label>
+                  <textarea id="s-boa-inst" class="form-textarea" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Telebirr -->
+            <div style="background:#F0F9FF; border:1px solid #BAE6FD; border-radius:var(--radius-md); padding:18px;">
+              <h3 style="font-size:1.05rem; font-weight:800; color:#0369A1; margin-bottom:12px;">Telebirr Mobile Money</h3>
+              
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div class="form-group">
+                  <label class="form-label">Telebirr Mobile / Merchant Number</label>
+                  <input type="text" id="s-tele-phone" class="form-input" style="font-family:var(--font-mono); font-weight:700;" required />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Recipient Name</label>
+                  <input type="text" id="s-tele-name" class="form-input" required />
+                </div>
+
+                <div class="form-group" style="grid-column:span 2; margin-bottom:0;">
+                  <label class="form-label">Customer Transfer Instructions</label>
+                  <textarea id="s-tele-inst" class="form-textarea" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Additional Payment Methods -->
+        <div class="admin-card" style="margin-top:24px;">
+          <div class="admin-card-header">
+            <div>
+              <h2 class="admin-card-title">Additional Payment Methods</h2>
+              <div style="font-size:0.85rem; color:var(--text-muted);">Add, edit, enable or remove any extra bank, wallet or payment option. These methods appear at checkout automatically.</div>
+            </div>
+            <button type="button" class="btn btn-primary" id="add-payment-method-btn">+ Add Payment Method</button>
+          </div>
+          <div style="padding:24px; overflow-x:auto;">
+            <div id="payment-methods-list" style="display:grid; gap:12px;"></div>
+          </div>
+        </div>
+
+        <div class="modal-overlay" id="payment-method-modal">
+          <div class="modal-box">
+            <button type="button" class="modal-close-btn" id="close-payment-method-modal">&times;</button>
+            <h3 style="font-size:1.2rem;font-weight:800;color:var(--primary);margin-bottom:16px;">Payment Method</h3>
+            <form id="payment-method-form">
+              <input type="hidden" id="pm-id" />
+              <div class="form-group"><label class="form-label">Payment Method Name *</label><input id="pm-name" class="form-input" placeholder="e.g. Dashen Bank" required /></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="form-group"><label class="form-label">Account / Phone Number</label><input id="pm-number" class="form-input" /></div>
+                <div class="form-group"><label class="form-label">Account Holder / Recipient</label><input id="pm-account-name" class="form-input" /></div>
+              </div>
+              <div class="form-group"><label class="form-label">Customer Instructions</label><textarea id="pm-instructions" class="form-textarea" rows="3" placeholder="How should the customer pay?"></textarea></div>
+              <label style="display:flex;align-items:center;gap:8px;margin:10px 0 16px;font-weight:700;"><input type="checkbox" id="pm-active" checked /> Available at checkout</label>
+              <button class="btn btn-primary btn-block" type="submit">Save Payment Method</button>
+            </form>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; margin-bottom:48px;">
+          <button type="submit" class="btn btn-primary btn-lg" id="save-settings-btn">Save All Store Settings</button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script type="module">
+    import { renderAdminLayout, adminApiRequest, showAdminToast, playAdminSound } from '/js/admin.js';
+
+    renderAdminLayout('settings', 'Store Settings');
+
+    async function loadSettings() {
+      try {
+        const res = await adminApiRequest('/settings');
+        const map = {};
+        (res.settings || []).forEach(item => {
+          map[item.key] = item.value;
+        });
+
+        document.getElementById('s-store-name').value = map.store_name || 'Mira Sport';
+        document.getElementById('s-store-tagline').value = map.store_tagline || '';
+        document.getElementById('s-store-email').value = map.store_email || '';
+        document.getElementById('s-store-phone').value = map.store_phone || '';
+        document.getElementById('s-store-address').value = map.store_address || '';
+        document.getElementById('s-currency-code').value = map.currency_code || 'ETB';
+
+        document.getElementById('s-cbe-acc').value = map.cbe_account_number || '';
+        document.getElementById('s-cbe-name').value = map.cbe_account_name || '';
+        document.getElementById('s-cbe-inst').value = map.cbe_instructions || '';
+
+        document.getElementById('s-boa-acc').value = map.abyssinia_account_number || '';
+        document.getElementById('s-boa-name').value = map.abyssinia_account_name || '';
+        document.getElementById('s-boa-inst').value = map.abyssinia_instructions || '';
+
+        document.getElementById('s-tele-phone').value = map.telebirr_phone || '';
+        document.getElementById('s-tele-name').value = map.telebirr_account_name || '';
+        document.getElementById('s-tele-inst').value = map.telebirr_instructions || '';
+
+      } catch (err) {
+        console.error('Failed to load settings:', err);
+      }
+    }
+
+    document.getElementById('settings-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = document.getElementById('save-settings-btn');
+      const originalText = saveBtn.textContent;
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving Settings...';
+
+      const payload = {
+        settings: {
+          store_name: document.getElementById('s-store-name').value.trim(),
+          store_tagline: document.getElementById('s-store-tagline').value.trim(),
+          store_email: document.getElementById('s-store-email').value.trim(),
+          store_phone: document.getElementById('s-store-phone').value.trim(),
+          store_address: document.getElementById('s-store-address').value.trim(),
+          currency_code: document.getElementById('s-currency-code').value.trim().toUpperCase(),
+
+          cbe_account_number: document.getElementById('s-cbe-acc').value.trim(),
+          cbe_account_name: document.getElementById('s-cbe-name').value.trim(),
+          cbe_instructions: document.getElementById('s-cbe-inst').value.trim(),
+
+          abyssinia_account_number: document.getElementById('s-boa-acc').value.trim(),
+          abyssinia_account_name: document.getElementById('s-boa-name').value.trim(),
+          abyssinia_instructions: document.getElementById('s-boa-inst').value.trim(),
+
+          telebirr_phone: document.getElementById('s-tele-phone').value.trim(),
+          telebirr_account_name: document.getElementById('s-tele-name').value.trim(),
+          telebirr_instructions: document.getElementById('s-tele-inst').value.trim(),
+        }
+      };
+
+      try {
+        await adminApiRequest('/settings', {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+        playAdminSound('success');
+        showAdminToast('All store settings and payment accounts saved successfully!', 'success', 'Settings Saved');
+        const paymentModal = document.getElementById('payment-method-modal');
+    const paymentForm = document.getElementById('payment-method-form');
+
+    async function loadPaymentMethods() {
+      const box = document.getElementById('payment-methods-list');
+      try {
+        const res = await adminApiRequest('/payment-methods');
+        const methods = res.methods || [];
+        if (!methods.length) { box.innerHTML = '<div style="color:var(--text-muted);">No additional payment methods configured.</div>'; return; }
+        box.innerHTML = methods.map(m => `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--surface);">
+            <div><strong>${m.name}</strong><div style="font-size:.82rem;color:var(--text-muted);">${m.account_number || 'No account number'} ${m.account_name ? '• '+m.account_name : ''}</div></div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+              <span class="badge-tag" style="background:${m.is_active ? 'var(--success)' : 'var(--surface-alt)'};color:${m.is_active ? '#fff' : 'var(--text-muted)'};">${m.is_active ? 'Active' : 'Disabled'}</span>
+              <button type="button" class="btn btn-outline btn-sm pm-edit" data-id="${m.id}">Edit</button>
+              <button type="button" class="btn btn-ghost btn-sm pm-delete" data-id="${m.id}" style="color:var(--error);">Delete</button>
+            </div>
+          </div>`).join('');
+        box.querySelectorAll('.pm-edit').forEach(btn => btn.addEventListener('click', () => {
+          const m = methods.find(x => String(x.id) === btn.dataset.id); if (!m) return;
+          document.getElementById('pm-id').value=m.id; document.getElementById('pm-name').value=m.name||''; document.getElementById('pm-number').value=m.account_number||''; document.getElementById('pm-account-name').value=m.account_name||''; document.getElementById('pm-instructions').value=m.instructions||''; document.getElementById('pm-active').checked=Boolean(m.is_active); paymentModal.classList.add('open');
+        }));
+        box.querySelectorAll('.pm-delete').forEach(btn => btn.addEventListener('click', async () => {
+          if (!confirm('Delete this payment method?')) return;
+          await adminApiRequest(`/payment-methods/${btn.dataset.id}`, {method:'DELETE'}); loadPaymentMethods();
+        }));
+      } catch (err) { box.innerHTML='<div style="color:var(--error);">Failed to load payment methods.</div>'; }
+    }
+
+    document.getElementById('add-payment-method-btn').addEventListener('click', () => { paymentForm.reset(); document.getElementById('pm-id').value=''; document.getElementById('pm-active').checked=true; paymentModal.classList.add('open'); });
+    document.getElementById('close-payment-method-modal').addEventListener('click', () => paymentModal.classList.remove('open'));
+    paymentForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id=document.getElementById('pm-id').value;
+      const payload={name:document.getElementById('pm-name').value.trim(),account_number:document.getElementById('pm-number').value.trim(),account_name:document.getElementById('pm-account-name').value.trim(),instructions:document.getElementById('pm-instructions').value.trim(),is_active:document.getElementById('pm-active').checked?1:0};
+      try { await adminApiRequest(id?`/payment-methods/${id}`:'/payment-methods',{method:id?'PUT':'POST',body:JSON.stringify(payload)}); paymentModal.classList.remove('open'); showAdminToast('Payment method saved.','success','Payment Method'); loadPaymentMethods(); }
+      catch(err){ showAdminToast(err.message||'Unable to save payment method.','error','Payment Method'); }
+    });
+
+    loadPaymentMethods();
+    loadSettings();
+      } catch (err) {
+        playAdminSound('error');
+        showAdminToast(err.message || 'Error saving settings', 'error', 'Save Failed');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+      }
+    });
+
+    const paymentModal = document.getElementById('payment-method-modal');
+    const paymentForm = document.getElementById('payment-method-form');
+
+    async function loadPaymentMethods() {
+      const box = document.getElementById('payment-methods-list');
+      try {
+        const res = await adminApiRequest('/payment-methods');
+        const methods = res.methods || [];
+        if (!methods.length) { box.innerHTML = '<div style="color:var(--text-muted);">No additional payment methods configured.</div>'; return; }
+        box.innerHTML = methods.map(m => `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--surface);">
+            <div><strong>${m.name}</strong><div style="font-size:.82rem;color:var(--text-muted);">${m.account_number || 'No account number'} ${m.account_name ? '• '+m.account_name : ''}</div></div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+              <span class="badge-tag" style="background:${m.is_active ? 'var(--success)' : 'var(--surface-alt)'};color:${m.is_active ? '#fff' : 'var(--text-muted)'};">${m.is_active ? 'Active' : 'Disabled'}</span>
+              <button type="button" class="btn btn-outline btn-sm pm-edit" data-id="${m.id}">Edit</button>
+              <button type="button" class="btn btn-ghost btn-sm pm-delete" data-id="${m.id}" style="color:var(--error);">Delete</button>
+            </div>
+          </div>`).join('');
+        box.querySelectorAll('.pm-edit').forEach(btn => btn.addEventListener('click', () => {
+          const m = methods.find(x => String(x.id) === btn.dataset.id); if (!m) return;
+          document.getElementById('pm-id').value=m.id; document.getElementById('pm-name').value=m.name||''; document.getElementById('pm-number').value=m.account_number||''; document.getElementById('pm-account-name').value=m.account_name||''; document.getElementById('pm-instructions').value=m.instructions||''; document.getElementById('pm-active').checked=Boolean(m.is_active); paymentModal.classList.add('open');
+        }));
+        box.querySelectorAll('.pm-delete').forEach(btn => btn.addEventListener('click', async () => {
+          if (!confirm('Delete this payment method?')) return;
+          await adminApiRequest(`/payment-methods/${btn.dataset.id}`, {method:'DELETE'}); loadPaymentMethods();
+        }));
+      } catch (err) { box.innerHTML='<div style="color:var(--error);">Failed to load payment methods.</div>'; }
+    }
+
+    document.getElementById('add-payment-method-btn').addEventListener('click', () => { paymentForm.reset(); document.getElementById('pm-id').value=''; document.getElementById('pm-active').checked=true; paymentModal.classList.add('open'); });
+    document.getElementById('close-payment-method-modal').addEventListener('click', () => paymentModal.classList.remove('open'));
+    paymentForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id=document.getElementById('pm-id').value;
+      const payload={name:document.getElementById('pm-name').value.trim(),account_number:document.getElementById('pm-number').value.trim(),account_name:document.getElementById('pm-account-name').value.trim(),instructions:document.getElementById('pm-instructions').value.trim(),is_active:document.getElementById('pm-active').checked?1:0};
+      try { await adminApiRequest(id?`/payment-methods/${id}`:'/payment-methods',{method:id?'PUT':'POST',body:JSON.stringify(payload)}); paymentModal.classList.remove('open'); showAdminToast('Payment method saved.','success','Payment Method'); loadPaymentMethods(); }
+      catch(err){ showAdminToast(err.message||'Unable to save payment method.','error','Payment Method'); }
+    });
+
+    loadPaymentMethods();
+    loadSettings();
+  </script>
+</body>
+</html>

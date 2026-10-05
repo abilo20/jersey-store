@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Order Status | Mira Sport</title>
+  <meta name="description" content="Track your football jersey order status with your order number or tracking code. View real-time fulfillment timeline and payment verification.">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .tracking-search-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 32px 24px;
+      max-width: 640px;
+      margin: 24px auto 36px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .timeline-container {
+      margin: 32px 0;
+      position: relative;
+    }
+    .timeline-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      position: relative;
+      padding-bottom: 28px;
+    }
+    .timeline-step:last-child {
+      padding-bottom: 0;
+    }
+    .timeline-step::before {
+      content: '';
+      position: absolute;
+      left: 17px;
+      top: 36px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .timeline-step:last-child::before {
+      display: none;
+    }
+    .timeline-step.completed::before {
+      background: var(--accent);
+    }
+    .timeline-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      background: var(--surface-alt);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      z-index: 2;
+      flex-shrink: 0;
+    }
+    .timeline-step.completed .timeline-circle {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .timeline-step.current .timeline-circle {
+      background: #FFFBF7;
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header"></header>
+  <div id="mobile-top-bar" class="mobile-top-bar"></div>
+
+  <main class="container">
+    <div style="padding: 16px 0 8px; text-align:center;">
+      <h1 style="font-size:1.85rem; font-weight:900; color:var(--primary);">Order Tracking</h1>
+      <p style="font-size:0.92rem; color:var(--text-muted);">Enter your application-generated Order Number (e.g. <code>JH-20261003-XXXXX</code>) or Tracking Code (<code>TRK-XXXXXX</code>).</p>
+    </div>
+
+    <!-- Search Form -->
+    <div class="tracking-search-box">
+      <form id="tracking-search-form" style="display:flex; gap:10px;">
+        <input type="text" id="track-query-input" class="form-input" placeholder="e.g. JH-20261003-48291 or TRK-8F42K9" style="font-family:var(--font-mono); font-weight:700; text-transform:uppercase;" required />
+        <button type="submit" class="btn btn-primary" id="track-btn">Track Order</button>
+      </form>
+    </div>
+
+    <!-- Tracking Results Area -->
+    <div id="tracking-result-area" style="display:none; max-width:800px; margin: 0 auto 48px;">
+      
+      <!-- Order Header Card -->
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; margin-bottom:24px;">
+        <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px;">
+          <div>
+            <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Order Number</div>
+            <div style="font-size:1.35rem; font-weight:900; font-family:var(--font-mono); color:var(--primary);" id="res-order-number"></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Tracking Code</div>
+            <div style="font-size:1.1rem; font-weight:800; font-family:var(--font-mono); color:var(--accent);" id="res-tracking-code"></div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding-top:14px; border-top:1px solid var(--border-light);">
+          <div>Status: <span class="status-pill pending" id="res-order-status-badge">Order Placed</span></div>
+          <div>Payment: <span class="status-pill pending" id="res-payment-status-badge">Pending Verification</span></div>
+          <div style="margin-left:auto; font-size:0.82rem; color:var(--text-muted);" id="res-order-date"></div>
+        </div>
+
+        <!-- Rejection Warning if rejected -->
+        <div id="res-rejection-box" style="display:none; background:#FEF2F2; border:1px solid #FCA5A5; border-radius:var(--radius-md); padding:14px; margin-top:16px;">
+          <div style="font-weight:800; color:#B91C1C; margin-bottom:4px;">Payment Verification Rejected</div>
+          <p style="font-size:0.88rem; color:#7F1D1D;" id="res-rejection-reason"></p>
+        </div>
+      </div>
+
+      <!-- Real Timeline -->
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; margin-bottom:24px;">
+        <h2 style="font-size:1.15rem; font-weight:800; color:var(--primary); margin-bottom:18px;">Fulfillment Progress</h2>
+        
+        <div class="timeline-container" id="timeline-steps-list">
+          <!-- Dynamically populated from actual stored state -->
+        </div>
+      </div>
+
+      <!-- Order Details Summary -->
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
+        <h2 style="font-size:1.15rem; font-weight:800; color:var(--primary); margin-bottom:18px;">Order Details</h2>
+
+        <div id="res-items-list" style="display:flex; flex-direction:column; gap:12px; margin-bottom:18px;">
+          <!-- Items injected -->
+        </div>
+
+        <div style="border-top:1px solid var(--border-light); padding-top:16px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:0.88rem;">
+            <div>
+              <div style="font-weight:800; color:var(--primary); margin-bottom:4px;">Delivery Address:</div>
+              <div style="color:var(--text-muted);" id="res-delivery-address"></div>
+            </div>
+            <div>
+              <div style="font-weight:800; color:var(--primary); margin-bottom:4px;">Payment Reference:</div>
+              <div style="color:var(--text-muted);" id="res-payment-ref-text"></div>
+              <div style="font-weight:800; color:var(--primary); margin-top:12px;">Order Total:</div>
+              <div style="font-size:1.25rem; font-weight:900; color:var(--accent);" id="res-order-total"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Empty State -->
+    <div id="tracking-empty-view" class="empty-state" style="display:none; max-width:640px; margin:0 auto;">
+      <div class="empty-state-title" id="tracking-error-title">No order found</div>
+      <p class="empty-state-desc" id="tracking-error-desc">Please verify your order number or tracking code.</p>
+    </div>
+  </main>
+
+  <footer class="footer"></footer>
+  <nav class="mobile-nav"></nav>
+
+  <script type="module">
+    import { renderStoreNavigation, apiRequest, getIcon, showToast } from '/js/api.js';
+
+    renderStoreNavigation('tracking');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialQuery = urlParams.get('order') || urlParams.get('tracking') || '';
+
+    if (initialQuery) {
+      document.getElementById('track-query-input').value = initialQuery;
+      trackOrder(initialQuery);
+    }
+
+    document.getElementById('tracking-search-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = document.getElementById('track-query-input').value.trim();
+      if (val) trackOrder(val);
+    });
+
+    async function trackOrder(query) {
+      const resultArea = document.getElementById('tracking-result-area');
+      const emptyView = document.getElementById('tracking-empty-view');
+      const trackBtn = document.getElementById('track-btn');
+
+      trackBtn.disabled = true;
+      trackBtn.textContent = 'Searching...';
+
+      try {
+        const res = await apiRequest(`/orders/track/${encodeURIComponent(query)}`);
+        const order = res.order;
+
+        resultArea.style.display = 'block';
+        emptyView.style.display = 'none';
+
+        document.getElementById('res-order-number').textContent = order.order_number;
+        document.getElementById('res-tracking-code').textContent = order.tracking_code;
+        document.getElementById('res-order-date').textContent = new Date(order.created_at).toLocaleDateString('en-US', {
+          year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        // Badges
+        const statusBadge = document.getElementById('res-order-status-badge');
+        statusBadge.textContent = order.order_status;
+        statusBadge.className = `status-pill ${order.order_status.toLowerCase().replace(/[^a-z]+/g, '-')}`;
+
+        const payBadge = document.getElementById('res-payment-status-badge');
+        payBadge.textContent = order.payment_status;
+        payBadge.className = `status-pill ${order.payment_status.toLowerCase().replace(/[^a-z]+/g, '-')}`;
+
+        // Rejection
+        const rejectBox = document.getElementById('res-rejection-box');
+        if (order.rejection_reason) {
+          rejectBox.style.display = 'block';
+          document.getElementById('res-rejection-reason').textContent = order.rejection_reason;
+        } else {
+          rejectBox.style.display = 'none';
+        }
+
+        // Timeline Construction (Strict Rule 21: only mark completed when state supports it)
+        const timelineContainer = document.getElementById('timeline-steps-list');
+        const stages = [
+          { key: 'Order Placed', title: 'Order Placed', desc: 'Your kit order has been created in the system.' },
+          { key: 'Payment Submitted', title: 'Payment Submitted', desc: 'Transfer screenshot & reference code received.' },
+          { key: 'Payment Verified', title: 'Payment Verified', desc: 'Administrator confirmed bank/telebirr transfer receipt.' },
+          { key: 'Processing', title: 'Processing & Custom Printing', desc: 'Kit pulled from inventory and name/number applied.' },
+          { key: 'Packed', title: 'Packed & Quality Inspected', desc: 'Sealed with protective packaging.' },
+          { key: 'Shipped', title: 'Dispatched to Courier', desc: 'In transit with delivery courier.' },
+          { key: 'Delivered', title: 'Delivered', desc: 'Package received by customer.' }
+        ];
+
+        // Map order_status to index
+        const orderStatusMap = {
+          'Order Placed': 0,
+          'Payment Submitted': 1,
+          'Payment Verification Pending': 1,
+          'Payment Verified': 2,
+          'Processing': 3,
+          'Packed': 4,
+          'Shipped': 5,
+          'Out for Delivery': 5,
+          'Delivered': 6
+        };
+
+        const activeIndex = orderStatusMap[order.order_status] !== undefined ? orderStatusMap[order.order_status] : 0;
+
+        timelineContainer.innerHTML = stages.map((stg, idx) => {
+          let stepClass = '';
+          let iconContent = idx + 1;
+
+          if (idx < activeIndex) {
+            stepClass = 'completed';
+            iconContent = '✓';
+          } else if (idx === activeIndex) {
+            stepClass = 'current';
+            iconContent = '●';
+          }
+
+          return `
+            <div class="timeline-step ${stepClass}">
+              <div class="timeline-circle">${iconContent}</div>
+              <div>
+                <div style="font-weight:800; font-size:0.95rem; color:${stepClass ? 'var(--primary)' : 'var(--text-subtle)'};">${stg.title}</div>
+                <div style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;">${stg.desc}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Items
+        const itemsList = document.getElementById('res-items-list');
+        itemsList.innerHTML = order.items.map(it => `
+          <div style="display:flex; align-items:center; gap:12px; font-size:0.9rem;">
+            <img src="${it.product_image || '/uploads/products/product-placeholder.jpg'}" style="width:48px; height:48px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border);" />
+            <div style="flex:1;">
+              <div style="font-weight:700; color:var(--text);">${it.product_name}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Size: ${it.size} &bull; Qty: ${it.quantity} ${it.player_name ? `(Print: ${it.player_name} #${it.player_number})` : ''}</div>
+            </div>
+            <div style="font-weight:800; color:var(--primary);">${it.total_price.toLocaleString()} ETB</div>
+          </div>
+        `).join('');
+
+        // Details
+        document.getElementById('res-delivery-address').innerHTML = `
+          <strong>${order.customer_name}</strong><br>
+          ${order.customer_phone}<br>
+          ${order.address}, ${order.city} (${order.region})<br>
+          <em>${order.shipping_method_name || 'Standard Delivery'}</em>
+        `;
+
+        document.getElementById('res-payment-ref-text').innerHTML = `
+          Method: <strong>${order.payment_method}</strong><br>
+          Reference: <strong style="font-family:var(--font-mono);">${order.transaction_reference || 'Pending'}</strong>
+        `;
+
+        document.getElementById('res-order-total').textContent = `${order.total.toLocaleString()} ETB`;
+
+      } catch (err) {
+        resultArea.style.display = 'none';
+        emptyView.style.display = 'block';
+        document.getElementById('tracking-error-title').textContent = 'Order Not Found';
+        document.getElementById('tracking-error-desc').textContent = `No order was found matching query "${query}". Please check your order confirmation details.`;
+      } finally {
+        trackBtn.disabled = false;
+        trackBtn.textContent = 'Track Order';
+      }
+    }
+  </script>
+</body>
+</html>

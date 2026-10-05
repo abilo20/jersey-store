@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mira Sport | Official Football Kits & Custom Printing</title>
+  <meta name="description" content="Mira Sport football jersey store with customizable kits, real order tracking, payment verification, and nationwide Ethiopian delivery.">
+  <meta property="og:title" content="Mira Sport | Football Kits">
+  <meta property="og:description" content="Shop authentic football kits with custom player name & number heat printing in Ethiopia.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="header"></header>
+
+  <!-- Mobile Top Greeting & Search -->
+  <div id="mobile-top-bar" class="mobile-top-bar"></div>
+
+  <!-- Main Container -->
+  <main class="container">
+    
+    <!-- Hero Banner Carousel -->
+    <section class="hero-section">
+      <div id="hero-banner-container" class="hero-banner">
+        <!-- Injected dynamically from /api/products/banners -->
+        <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#fff;">
+          <span>Loading collection...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Shortcuts -->
+        <!-- Category Shortcuts -->
+    <section>
+      <div class="section-header">
+        <h2 class="section-title">Shop by Category</h2>
+        <a href="/shop.html" class="section-link">View All &rarr;</a>
+      </div>
+      <div id="category-grid" class="category-grid">
+        <!-- Injected dynamically from /api/products/categories -->
+      </div>
+    </section>
+
+    <!-- Featured Jerseys -->
+    <section>
+      <div class="section-header">
+        <h2 class="section-title">Featured Kits</h2>
+        <a href="/shop.html?featured=1" class="section-link">See All &rarr;</a>
+      </div>
+      <div id="featured-grid" class="product-grid">
+        <!-- Injected dynamically -->
+      </div>
+    </section>
+
+    <!-- New Arrivals -->
+    <section style="margin-top: 36px;">
+      <div class="section-header">
+        <h2 class="section-title">New Arrivals</h2>
+        <a href="/shop.html?is_new=1" class="section-link">See All &rarr;</a>
+      </div>
+      <div id="new-arrivals-grid" class="product-grid">
+        <!-- Injected dynamically -->
+      </div>
+    </section>
+
+    <!-- Recently Viewed (Strictly Honest - Only shown if user has actually viewed products) -->
+    <section id="recently-viewed-section" style="margin-top: 36px; display: none;">
+      <div class="section-header">
+        <h2 class="section-title">Recently Viewed</h2>
+      </div>
+      <div id="recently-viewed-grid" class="product-grid">
+        <!-- Injected from localStorage tracker -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer"></footer>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="mobile-nav"></nav>
+
+  <script type="module">
+    import { renderStoreNavigation, apiRequest, getIcon, showToast, getRecentlyViewed, getSessionId, escapeHtml } from '/js/api.js';
+
+    renderStoreNavigation('home');
+
+    // Load up to 2 active promotions and rotate every 8 seconds.
+    let heroBanners = [];
+    let heroIndex = 0;
+    let heroTimer = null;
+    function renderHeroBanner(index) {
+      const container = document.getElementById('hero-banner-container');
+      if (!container || !heroBanners.length) return;
+      const b = heroBanners[index];
+      container.classList.remove('hero-promo-enter');
+      void container.offsetWidth;
+      container.classList.add('hero-promo-enter');
+      container.innerHTML = `
+        <div class="hero-promo-content">
+          <div class="hero-promo-copy">
+            ${b.title ? `<h2>${escapeHtml(b.title)}</h2>` : ''}
+            ${b.subtitle ? `<p>${escapeHtml(b.subtitle)}</p>` : ''}
+            ${b.cta_text ? `<a class="btn btn-primary hero-promo-btn" href="${escapeHtml(b.cta_link || '/shop.html')}">${escapeHtml(b.cta_text)}</a>` : ''}
+          </div>
+          <div class="hero-promo-image-wrap"><img src="${escapeHtml(b.image_url)}" alt="${escapeHtml(b.title || 'Promotion')}" /></div>
+        </div>`;
+    }
+    async function loadBanners() {
+      try {
+        const res = await apiRequest('/products/banners');
+        heroBanners = (res.banners || []).slice(0, 2);
+        if (!heroBanners.length) { document.getElementById('hero-banner-container').innerHTML = '<div class="hero-promo-empty">No active promotions.</div>'; return; }
+        renderHeroBanner(0);
+        if (heroBanners.length > 1) {
+          clearInterval(heroTimer);
+          heroTimer = setInterval(() => { heroIndex = (heroIndex + 1) % heroBanners.length; renderHeroBanner(heroIndex); }, 8000);
+        }
+      } catch (e) { console.error('Error loading promotions', e); }
+    }
+
+    // Load Categories
+    async function loadCategories() {
+      try {
+        const res = await apiRequest('/products/categories');
+        const grid = document.getElementById('category-grid');
+        if (res.categories && res.categories.length > 0) {
+          grid.innerHTML = res.categories.map(c => `
+            <a href="/shop.html?category=${encodeURIComponent(c.slug || '')}" class="category-text-button">${escapeHtml(c.name)} <span>${Number(c.product_count || 0)}</span></a>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Error loading categories', e);
+      }
+    }
+
+    // Helper to render product card
+    function renderProductCard(p) {
+      const discount = p.old_price && p.old_price > p.price
+        ? Math.round(((p.old_price - p.price) / p.old_price) * 100)
+        : null;
+
+      const hasStock = p.total_stock > 0;
+      const stockBadge = hasStock
+        ? (p.total_stock <= 5 ? '<span class="stock-tag low-stock">Low Stock</span>' : '<span class="stock-tag in-stock">In Stock</span>')
+        : '<span class="stock-tag out-stock">Out of Stock</span>';
+
+      const stars = p.avg_rating ? `
+        <span class="rating-star-icon">★</span>
+        <span style="font-weight:700; color:var(--text);">${p.avg_rating}</span>
+        <span style="color:var(--text-subtle);">(${p.review_count || 0})</span>
+      ` : '<span style="color:var(--text-subtle); font-size:0.75rem;">No reviews yet</span>';
+
+      return `
+        <div class="product-card" data-id="${p.id}">
+          <div class="product-image-wrap">
+            <a href="/product.html?slug=${encodeURIComponent(p.slug || '')}" style="display:block; width:100%; height:100%;">
+              <img src="${escapeHtml(p.primary_image || '/uploads/products/product-placeholder.jpg')}" alt="${escapeHtml(p.name)}" loading="lazy"/>
+            </a>
+            <div class="product-badge-group">
+              ${p.is_new ? '<span class="badge-tag tag-new">New</span>' : ''}
+              ${discount ? `<span class="badge-tag tag-sale">-${discount}%</span>` : ''}
+              ${p.is_customizable ? '<span class="badge-tag tag-custom">Custom</span>' : ''}
+            </div>
+            <button type="button" class="like-button-corner favorite-toggle-btn ${p.is_favorite ? 'liked' : ''}" data-id="${p.id}" title="Save to favorites">${getIcon('heart', 18)}</button>
+          </div>
+          <div class="product-info">
+            <div class="product-team">${escapeHtml(p.team || p.category_name || '')} &bull; ${escapeHtml(p.season || '')}</div>
+            <a href="/product.html?slug=${encodeURIComponent(p.slug || '')}" class="product-title">${escapeHtml(p.name)}</a>
+            <div class="product-rating-bar">${stars}</div>
+            <div class="product-price-row">
+              <div>
+                <span class="price-current">${p.price.toLocaleString()} ETB</span>
+                ${p.old_price ? `<span class="price-old">${p.old_price.toLocaleString()}</span>` : ''}
+              </div>
+              <div>${stockBadge}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Load Featured & New Arrivals
+    async function loadProducts() {
+      try {
+        const [featRes, newRes] = await Promise.all([
+          apiRequest('/products?featured=1&limit=4'),
+          apiRequest('/products?is_new=1&limit=4')
+        ]);
+
+        const featGrid = document.getElementById('featured-grid');
+        if (featRes.products && featRes.products.length > 0) {
+          featGrid.innerHTML = featRes.products.map(renderProductCard).join('');
+        } else {
+          featGrid.innerHTML = '<div class="empty-state"><p>No featured jerseys at this time.</p></div>';
+        }
+
+        const newGrid = document.getElementById('new-arrivals-grid');
+        if (newRes.products && newRes.products.length > 0) {
+          newGrid.innerHTML = newRes.products.map(renderProductCard).join('');
+        } else {
+          newGrid.innerHTML = '<div class="empty-state"><p>No new arrivals at this time.</p></div>';
+        }
+
+        attachLikeListeners();
+      } catch (e) {
+        console.error('Error loading products', e);
+      }
+    }
+
+    // Attach like listeners
+    function attachLikeListeners() {
+      document.querySelectorAll('.favorite-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const prodId = btn.getAttribute('data-id');
+          try {
+            if (!localStorage.getItem('mira_token')) { window.location.href = '/login.html?redirect=/index.html'; return; }
+            const res = await apiRequest('/wishlist/toggle', { method:'POST', body:JSON.stringify({product_id:Number(prodId)}) });
+            if (res.saved) { btn.classList.add('liked'); showToast('Added to favorites', 'success'); }
+            else { btn.classList.remove('liked'); showToast('Removed from favorites'); }
+          } catch (err) {
+            showToast('Unable to update like', 'error');
+          }
+        });
+      });
+    }
+
+    // Load Recently Viewed from LocalStorage
+    function loadRecentlyViewed() {
+      const recent = getRecentlyViewed();
+      if (recent && recent.length > 0) {
+        const section = document.getElementById('recently-viewed-section');
+        const grid = document.getElementById('recently-viewed-grid');
+        section.style.display = 'block';
+        grid.innerHTML = recent.slice(0, 4).map(p => `
+          <div class="product-card">
+            <div class="product-image-wrap">
+              <a href="/product.html?slug=${encodeURIComponent(p.slug || '')}" style="display:block; width:100%; height:100%;">
+                <img src="${escapeHtml(p.primary_image || '/uploads/products/product-placeholder.jpg')}" alt="${escapeHtml(p.name)}"/>
+              </a>
+            </div>
+            <div class="product-info">
+              <div class="product-team">${escapeHtml(p.team || '')}</div>
+              <a href="/product.html?slug=${encodeURIComponent(p.slug || '')}" class="product-title">${escapeHtml(p.name)}</a>
+              <div class="product-price-row">
+                <span class="price-current">${p.price.toLocaleString()} ETB</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    loadBanners();
+    loadCategories();
+    loadProducts();
+    loadRecentlyViewed();
+  </script>
+</body>
+</html>

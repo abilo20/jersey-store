@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homepage Banners | Mira Sport Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-header"></header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h2 class="admin-card-title">Homepage Promotional Banners</h2>
+            <div style="font-size:0.85rem; color:var(--text-muted);">Manage featured seasonal hero banners and promotional call-to-actions</div>
+          </div>
+          <button type="button" class="btn btn-primary" id="open-add-banner-btn">+ Add New Banner</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Banner Preview</th>
+                <th>Title &amp; Subtitle</th>
+                <th>CTA Text &amp; Target Link</th>
+                <th>Status</th>
+                <th>Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="banners-tbody">
+              <tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted);">Loading banners...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Banner Modal -->
+  <div class="modal-overlay" id="banner-modal">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" id="close-banner-modal">&times;</button>
+      <h3 style="font-size:1.25rem; font-weight:800; color:var(--primary); margin-bottom:16px;">Create Homepage Banner</h3>
+
+      <form id="banner-form">
+        <div class="form-group">
+          <label class="form-label">Banner Headline *</label>
+          <input type="text" id="b-title" class="form-input" placeholder="e.g. 2024/25 Champions League Kits" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Subtitle / Description</label>
+          <input type="text" id="b-sub" class="form-input" placeholder="e.g. Official match jerseys with custom printing" />
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">CTA Button Text</label>
+            <input type="text" id="b-cta-text" class="form-input" value="Shop Now" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">CTA Target Link</label>
+            <input type="text" id="b-cta-link" class="form-input" value="/shop.html" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Upload Banner Image (1200x480 Recommended)</label>
+          <input type="file" id="b-image-file" class="form-input" accept="image/*" />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:14px;">Save Banner</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { renderAdminLayout, adminApiRequest, showAdminToast, playAdminSound } from '/js/admin.js';
+
+    renderAdminLayout('banners', 'Homepage Banners');
+
+    async function loadBanners() {
+      const tbody = document.getElementById('banners-tbody');
+      try {
+        const res = await adminApiRequest('/banners');
+        if (!res.banners || res.banners.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted);">No banners configured yet.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = res.banners.map(b => `
+          <tr>
+            <td>
+              <img src="${b.image_url}" style="width:120px; height:50px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border);" />
+            </td>
+            <td>
+              <strong>${b.title}</strong>
+              <div style="font-size:0.8rem; color:var(--text-muted);">${b.subtitle || ''}</div>
+            </td>
+            <td>
+              <span class="badge-tag" style="background:var(--accent); color:#fff;">${b.cta_text}</span>
+              <code style="font-size:0.8rem; margin-left:6px;">${b.cta_link}</code>
+            </td>
+            <td>
+              <button type="button" class="btn btn-sm ${b.is_active ? 'btn-outline' : 'btn-ghost'} toggle-active-btn" data-id="${b.id}" data-active="${b.is_active}">
+                ${b.is_active ? 'Active' : 'Inactive'}
+              </button>
+            </td>
+            <td>${b.display_order}</td>
+            <td>
+              <button type="button" class="btn btn-ghost btn-sm del-banner-btn" data-id="${b.id}" style="color:var(--error);">&times;</button>
+            </td>
+          </tr>
+        `).join('');
+
+        tbody.querySelectorAll('.toggle-active-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            const current = btn.getAttribute('data-active') === '1';
+            await adminApiRequest(`/banners/${id}`, {
+              method: 'PUT',
+              body: JSON.stringify({ is_active: current ? 0 : 1 })
+            });
+            loadBanners();
+          });
+        });
+
+        tbody.querySelectorAll('.del-banner-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            if (confirm('Delete banner?')) {
+              await adminApiRequest(`/banners/${id}`, { method: 'DELETE' });
+              loadBanners();
+            }
+          });
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--error);">Failed to load banners.</td></tr>`;
+      }
+    }
+
+    const modal = document.getElementById('banner-modal');
+    document.getElementById('open-add-banner-btn').addEventListener('click', () => {
+      document.getElementById('banner-form').reset();
+      modal.classList.add('open');
+    });
+    document.getElementById('close-banner-modal').addEventListener('click', () => {
+      modal.classList.remove('open');
+    });
+
+    document.getElementById('banner-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('title', document.getElementById('b-title').value.trim());
+      formData.append('subtitle', document.getElementById('b-sub').value.trim());
+      formData.append('cta_text', document.getElementById('b-cta-text').value.trim());
+      formData.append('cta_link', document.getElementById('b-cta-link').value.trim());
+      formData.append('is_active', '1');
+
+      const fileInput = document.getElementById('b-image-file');
+      if (fileInput.files.length > 0) {
+        formData.append('image', fileInput.files[0]);
+      }
+
+      try {
+        await adminApiRequest('/banners', { method: 'POST', body: formData });
+        playAdminSound('success');
+        showAdminToast('Promotional banner published successfully!', 'success', 'Banner Created');
+        modal.classList.remove('open');
+        loadBanners();
+      } catch (err) {
+        playAdminSound('error');
+        showAdminToast(err.message || 'Error creating banner', 'error', 'Action Failed');
+      }
+    });
+
+    loadBanners();
+  </script>
+</body>
+</html>

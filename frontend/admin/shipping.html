@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shipping Setup | Mira Sport Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-header"></header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h2 class="admin-card-title">Ethiopian Shipping &amp; Delivery Methods</h2>
+            <div style="font-size:0.85rem; color:var(--text-muted);">Configure local Addis delivery and regional Ethiopian courier rates</div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Method Name</th>
+                <th>System Code</th>
+                <th>Delivery Fee (ETB)</th>
+                <th>Estimated Delivery Time</th>
+                <th>Active</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="shipping-tbody">
+              <tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted);">Loading shipping methods...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Edit Shipping Modal -->
+  <div class="modal-overlay" id="shipping-modal">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" id="close-shipping-modal">&times;</button>
+      <h3 style="font-size:1.25rem; font-weight:800; color:var(--primary); margin-bottom:16px;">Edit Shipping Method</h3>
+
+      <form id="shipping-form">
+        <input type="hidden" id="edit-ship-id" />
+
+        <div class="form-group">
+          <label class="form-label">Method Name *</label>
+          <input type="text" id="ship-name" class="form-input" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Price (ETB) *</label>
+          <input type="number" id="ship-price" class="form-input" required min="0" step="1" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Estimated Delivery Time *</label>
+          <input type="text" id="ship-days" class="form-input" placeholder="e.g. 2 - 3 business days" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:14px;">Save Shipping Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { renderAdminLayout, adminApiRequest, showAdminToast, playAdminSound } from '/js/admin.js';
+
+    renderAdminLayout('shipping', 'Shipping Methods');
+
+    let shippingMethods = [];
+
+    async function loadShipping() {
+      const tbody = document.getElementById('shipping-tbody');
+      try {
+        const res = await adminApiRequest('/shipping');
+        shippingMethods = res.methods || [];
+
+        tbody.innerHTML = shippingMethods.map(m => `
+          <tr>
+            <td><strong style="color:var(--primary);">${m.name}</strong></td>
+            <td><code>${m.code}</code></td>
+            <td><strong style="font-size:1.05rem;">${m.price.toLocaleString()} ETB</strong></td>
+            <td>${m.estimated_days}</td>
+            <td>
+              <button type="button" class="btn btn-sm ${m.is_active ? 'btn-outline' : 'btn-ghost'} toggle-active-btn" data-id="${m.id}" data-active="${m.is_active}">
+                ${m.is_active ? 'Active' : 'Inactive'}
+              </button>
+            </td>
+            <td>
+              <button type="button" class="btn btn-outline btn-sm edit-ship-btn" data-id="${m.id}">Edit Fee &amp; Info</button>
+            </td>
+          </tr>
+        `).join('');
+
+        tbody.querySelectorAll('.toggle-active-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            const cur = btn.getAttribute('data-active') === '1';
+            await adminApiRequest(`/shipping/${id}`, {
+              method: 'PUT',
+              body: JSON.stringify({ is_active: cur ? 0 : 1 })
+            });
+            loadShipping();
+          });
+        });
+
+        tbody.querySelectorAll('.edit-ship-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const m = shippingMethods.find(x => x.id === parseInt(id, 10));
+            if (m) openEditModal(m);
+          });
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--error);">Failed to load shipping methods.</td></tr>`;
+      }
+    }
+
+    const modal = document.getElementById('shipping-modal');
+    document.getElementById('close-shipping-modal').addEventListener('click', () => {
+      modal.classList.remove('open');
+    });
+
+    function openEditModal(m) {
+      document.getElementById('edit-ship-id').value = m.id;
+      document.getElementById('ship-name').value = m.name;
+      document.getElementById('ship-price').value = m.price;
+      document.getElementById('ship-days').value = m.estimated_days;
+      modal.classList.add('open');
+    }
+
+    document.getElementById('shipping-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-ship-id').value;
+      try {
+        await adminApiRequest(`/shipping/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: document.getElementById('ship-name').value.trim(),
+            price: document.getElementById('ship-price').value,
+            estimated_days: document.getElementById('ship-days').value.trim()
+          })
+        });
+        playAdminSound('success');
+        showAdminToast('Shipping method updated successfully!', 'success', 'Shipping Saved');
+        modal.classList.remove('open');
+        loadShipping();
+      } catch (err) {
+        playAdminSound('error');
+        showAdminToast(err.message || 'Error updating shipping method', 'error', 'Action Failed');
+      }
+    });
+
+    loadShipping();
+  </script>
+</body>
+</html>

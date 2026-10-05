@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Jersey Products | Mira Sport Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+
+  <style>
+    .product-media-uploader{margin:22px 0;padding:22px;border:1px solid var(--border);border-radius:16px;background:var(--surface)}
+    .media-uploader-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px}
+    .media-uploader-header h3{margin:0 0 5px;font-size:1rem}.media-uploader-header p{margin:0;color:var(--text-muted);font-size:.82rem}
+    .media-count{font-weight:700;font-size:.8rem;padding:6px 10px;border:1px solid var(--border);border-radius:999px;white-space:nowrap}
+    .media-dropzone{min-height:145px;border:1.5px dashed var(--border);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;text-align:center;transition:border-color .2s,background .2s}
+    .media-dropzone:hover,.media-dropzone.dragover{border-color:var(--primary);background:var(--surface-alt)}
+    .media-dropzone strong{font-size:.9rem}.media-dropzone span:not(.media-upload-icon){color:var(--text-muted);font-size:.75rem}
+    .media-upload-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--surface-alt);color:var(--primary)}.media-upload-icon svg{width:21px;height:21px}
+    .product-image-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:14px}
+    .product-image-preview-card{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:12px;background:var(--surface-alt)}
+    .product-image-preview-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}.product-image-preview-meta{padding:8px;display:flex;justify-content:space-between;gap:5px;font-size:.7rem}.product-image-preview-meta small{color:var(--text-muted)}
+    .media-remove-btn{position:absolute;top:7px;right:7px;width:28px;height:28px;border:0;border-radius:8px;display:grid;place-items:center;background:rgba(255,255,255,.94);color:#b42318;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)}.media-remove-btn svg{width:15px;height:15px}
+    .media-help{margin:9px 0 0;color:var(--text-muted);font-size:.76rem}
+    @media(max-width:700px){.product-image-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.media-uploader-header{flex-direction:column}}
+  </style>
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-header"></header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h2 class="admin-card-title">Jersey Catalog Management</h2>
+            <div style="font-size:0.85rem; color:var(--text-muted);">Manage real club &amp; national kits, pricing, customization, and stock</div>
+          </div>
+          <button type="button" class="btn btn-primary" id="open-add-product-btn">
+            + Add New Jersey
+          </button>
+        </div>
+
+        <!-- Filters & Search -->
+        <div style="padding:16px 20px; background:#FAFAFA; border-bottom:1px solid var(--border); display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="prod-search-input" class="form-input" placeholder="Search kit name, club, league..." style="max-width:280px;" />
+          
+          <select id="prod-cat-filter" class="form-select" style="max-width:200px;">
+            <option value="">All Categories</option>
+          </select>
+
+          <div style="margin-left:auto; font-size:0.85rem; color:var(--text-muted); font-weight:700;" id="prod-count-label">
+            0 jerseys in store
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Jersey Name</th>
+                <th>Club / Team</th>
+                <th>Season</th>
+                <th>Category</th>
+                <th>Price (ETB)</th>
+                <th>Total Stock</th>
+                <th>Customizable</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody">
+              <tr><td colspan="9" style="text-align:center; padding:32px; color:var(--text-muted);">Loading jerseys...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add / Edit Product Modal -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal-box" style="max-width:680px; max-height:92vh; overflow-y:auto;">
+      <button type="button" class="modal-close-btn" id="close-product-modal">&times;</button>
+      <h3 style="font-size:1.3rem; font-weight:800; color:var(--primary); margin-bottom:16px;" id="modal-product-title">Add New Jersey</h3>
+
+      <form id="product-form">
+        <input type="hidden" id="edit-prod-id" />
+
+        <div class="form-group">
+          <label class="form-label">Jersey Model Name *</label>
+          <input type="text" id="f-name" class="form-input" placeholder="e.g. Ethiopian National Team 2026 Home Kit" required />
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Club / National Team *</label>
+            <input type="text" id="f-team" class="form-input" placeholder="e.g. Walias Ethiopia" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">League / Tournament *</label>
+            <input type="text" id="f-league" class="form-input" placeholder="e.g. CAF / AFCON" required />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Season *</label>
+            <input type="text" id="f-season" class="form-input" placeholder="e.g. 2025/26" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="f-category" class="form-select">
+              <option value="">Select Category</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Price (ETB) *</label>
+            <input type="number" id="f-price" class="form-input" placeholder="2800" required min="1" step="0.5" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Old Price (For Discount Strike-through)</label>
+            <input type="number" id="f-old-price" class="form-input" placeholder="Optional original price, e.g. 3400" min="0" step="0.5" />
+          </div>
+        </div>
+
+        <!-- Product Images -->
+        <section class="product-media-uploader" aria-labelledby="product-images-title">
+          <div class="media-uploader-header">
+            <div>
+              <h3 id="product-images-title">Product photos</h3>
+              <p>Upload at least 2 photos. The first photo becomes the main product image.</p>
+            </div>
+            <span class="media-count" id="f-image-count">0 / 5</span>
+          </div>
+
+          <label class="media-dropzone" for="f-images" id="media-dropzone">
+            <span class="media-upload-icon" aria-hidden="true">Upload</span>
+            <strong>Choose product photos</strong>
+            <span>JPG, JPEG, PNG or WebP · up to 8 MB each · up to 5 photos</span>
+            <input type="file" id="f-images" accept="image/jpeg,image/png,image/webp" multiple hidden />
+          </label>
+
+          <div id="f-image-grid" class="product-image-grid" aria-live="polite"></div>
+          <p id="f-image-help" class="media-help">No photos selected yet.</p>
+        </section>
+
+        <!-- Stock per Size Matrix -->
+        <div class="form-group" style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:var(--radius-md); padding:16px;">
+          <label class="form-label" style="font-weight:800; color:#166534; margin-bottom:8px;">Inventory Stock by Size (Units)</label>
+          <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:8px;">
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#166534; display:block; text-align:center;">Size S</label>
+              <input type="number" id="f-stock-s" class="form-input" value="10" min="0" style="text-align:center; font-weight:700;" />
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#166534; display:block; text-align:center;">Size M</label>
+              <input type="number" id="f-stock-m" class="form-input" value="15" min="0" style="text-align:center; font-weight:700;" />
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#166534; display:block; text-align:center;">Size L</label>
+              <input type="number" id="f-stock-l" class="form-input" value="15" min="0" style="text-align:center; font-weight:700;" />
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#166534; display:block; text-align:center;">Size XL</label>
+              <input type="number" id="f-stock-xl" class="form-input" value="10" min="0" style="text-align:center; font-weight:700;" />
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#166534; display:block; text-align:center;">Size XXL</label>
+              <input type="number" id="f-stock-xxl" class="form-input" value="5" min="0" style="text-align:center; font-weight:700;" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Search Tags / Hashtags</label>
+          <input type="text" id="f-search-tags" class="form-input" placeholder="#barca, #barcelona, #fcbarcelona, #laliga" />
+          <div class="form-help">Add words or hashtags customers may search for. Separate tags with commas.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="f-description" class="form-textarea" rows="2" placeholder="Design story, badges, and details..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Material &amp; Technology</label>
+          <input type="text" id="f-material" class="form-input" value="100% Recycled Polyester (AEROREADY / Dri-FIT)" />
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:var(--surface-alt); padding:14px; border-radius:var(--radius-md); margin-bottom:18px;">
+          <div>
+            <label class="form-label">Allow Custom Player Printing</label>
+            <select id="f-is-custom" class="form-select">
+              <option value="1" selected>Yes - Custom Name &amp; Number</option>
+              <option value="0">No Customization</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Customization Fee (ETB)</label>
+            <input type="number" id="f-custom-price" class="form-input" value="300" min="0" />
+          </div>
+        </div>
+
+        <div style="display:flex; gap:18px; margin-bottom:18px;">
+          <label class="filter-checkbox-label">
+            <input type="checkbox" id="f-is-featured" />
+            <span>Featured on Homepage</span>
+          </label>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" id="f-is-new" checked />
+            <span>Mark as New Arrival</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="save-product-submit-btn">Save Product</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { renderAdminLayout, adminApiRequest, showAdminToast, playAdminSound } from '/js/admin.js';
+
+    renderAdminLayout('products', 'Jersey Products');
+
+    let allProducts = [];
+    let categoriesList = [];
+
+    // Product photo upload and preview state
+    const fileInput = document.getElementById('f-images');
+    const imageGrid = document.getElementById('f-image-grid');
+    const imageCount = document.getElementById('f-image-count');
+    const imageHelp = document.getElementById('f-image-help');
+    const selectedImages = [];
+
+    function renderSelectedImages() {
+      imageGrid.innerHTML = '';
+      imageCount.textContent = `${selectedImages.length} / 5`;
+      imageHelp.textContent = selectedImages.length === 0
+        ? 'No photos selected yet.'
+        : selectedImages.length < 2
+          ? 'Add at least one more photo before publishing a new product.'
+          : 'The first photo is the main product image. You can remove photos before saving.';
+
+      selectedImages.forEach((file, index) => {
+        const card = document.createElement('div');
+        card.className = 'product-image-preview-card';
+
+        const img = document.createElement('img');
+        img.alt = `Product photo ${index + 1}`;
+        img.src = URL.createObjectURL(file);
+
+        const meta = document.createElement('div');
+        meta.className = 'product-image-preview-meta';
+        meta.innerHTML = `<span>${index === 0 ? 'Main photo' : `Photo ${index + 1}`}</span><small>${(file.size / 1024 / 1024).toFixed(1)} MB</small>`;
+
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'media-remove-btn';
+        remove.setAttribute('aria-label', `Remove photo ${index + 1}`);
+        remove.textContent = 'Remove';
+        remove.addEventListener('click', () => {
+          selectedImages.splice(index, 1);
+          renderSelectedImages();
+        });
+
+        card.append(img, meta, remove);
+        imageGrid.appendChild(card);
+      });
+    }
+
+    fileInput.addEventListener('change', () => {
+      const incoming = Array.from(fileInput.files || []);
+      const available = 5 - selectedImages.length;
+      incoming.slice(0, available).forEach(file => {
+        if (file.type.startsWith('image/') && file.size <= 8 * 1024 * 1024) selectedImages.push(file);
+      });
+      fileInput.value = '';
+      renderSelectedImages();
+    });
+
+    const mediaDropzone = document.getElementById('media-dropzone');
+    ['dragenter','dragover'].forEach(type => mediaDropzone.addEventListener(type, e => { e.preventDefault(); mediaDropzone.classList.add('dragover'); }));
+    ['dragleave','drop'].forEach(type => mediaDropzone.addEventListener(type, e => { e.preventDefault(); mediaDropzone.classList.remove('dragover'); }));
+    mediaDropzone.addEventListener('drop', e => {
+      const incoming = Array.from(e.dataTransfer.files || []);
+      const available = 5 - selectedImages.length;
+      incoming.slice(0, available).forEach(file => {
+        if (file.type.startsWith('image/') && file.size <= 8 * 1024 * 1024) selectedImages.push(file);
+      });
+      renderSelectedImages();
+    });
+
+    async function init() {
+      try {
+        const catRes = await adminApiRequest('/categories');
+        categoriesList = catRes.categories || [];
+
+        const catFilter = document.getElementById('prod-cat-filter');
+        const formCat = document.getElementById('f-category');
+
+        catFilter.innerHTML = '<option value="">All Categories</option>' + categoriesList.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        formCat.innerHTML = '<option value="">Select Category</option>' + categoriesList.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+        loadProducts();
+      } catch (err) {
+        console.error('Failed to init categories:', err);
+      }
+    }
+
+    async function loadProducts() {
+      const search = document.getElementById('prod-search-input').value.trim();
+      const cat = document.getElementById('prod-cat-filter').value;
+
+      const q = new URLSearchParams();
+      if (search) q.set('search', search);
+      if (cat) q.set('category_id', cat);
+
+      try {
+        const res = await adminApiRequest(`/products?${q.toString()}`);
+        allProducts = res.products || [];
+        renderTable();
+      } catch (err) {
+        console.error('Failed to load products:', err);
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('products-tbody');
+      const countLabel = document.getElementById('prod-count-label');
+      countLabel.textContent = `${allProducts.length} jersey${allProducts.length === 1 ? '' : 's'} in store`;
+
+      if (allProducts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:32px; color:var(--text-muted);">No jerseys found matching your filters.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allProducts.map(p => `
+        <tr>
+          <td>
+            <img src="${p.primary_image || '/uploads/products/product-placeholder.jpg'}" style="width:48px; height:48px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border); background:#fff;" />
+          </td>
+          <td>
+            <strong style="color:var(--primary); font-size:0.95rem;">${p.name}</strong>
+          </td>
+          <td>${p.team} (${p.league})</td>
+          <td>${p.season}</td>
+          <td><span class="badge-tag" style="background:var(--surface-alt); color:var(--text);">${p.category_name || 'Unassigned'}</span></td>
+          <td>
+            <strong>${Number(p.price).toLocaleString()} ETB</strong>
+            ${p.old_price ? `<div style="font-size:0.75rem; text-decoration:line-through; color:var(--text-subtle);">${Number(p.old_price).toLocaleString()} ETB</div>` : ''}
+          </td>
+          <td>
+            <strong style="color:${p.total_stock <= 5 ? '#B91C1C' : '#047857'};">${p.total_stock} units</strong>
+          </td>
+          <td>${p.is_customizable ? '<span style="color:var(--success); font-weight:700;">✓ Yes (+'+(p.customization_price || 300)+' ETB)</span>' : '<span style="color:var(--text-muted);">No</span>'}</td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="btn btn-outline btn-sm edit-prod-btn" data-id="${p.id}">Edit</button>
+              <button type="button" class="btn btn-ghost btn-sm del-prod-btn" data-id="${p.id}" style="color:var(--error);" title="Delete Jersey">&times;</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      tbody.querySelectorAll('.edit-prod-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const p = allProducts.find(x => x.id === parseInt(id, 10));
+          if (p) openEditModal(p);
+        });
+      });
+
+      tbody.querySelectorAll('.del-prod-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          const p = allProducts.find(x => x.id === parseInt(id, 10));
+          const name = p ? p.name : 'this jersey';
+          
+          btn.disabled = true;
+          btn.textContent = '...';
+
+          try {
+            await adminApiRequest(`/products/${id}`, { method: 'DELETE' });
+            playAdminSound('success');
+            showAdminToast(`"${name}" was deleted from the catalog.`, 'info', 'Jersey Deleted');
+            loadProducts();
+          } catch (err) {
+            playAdminSound('error');
+            showAdminToast(err.message || 'Cannot delete jersey', 'error', 'Delete Failed');
+            btn.disabled = false;
+            btn.innerHTML = '&times;';
+          }
+        });
+      });
+    }
+
+    const modal = document.getElementById('product-modal');
+    document.getElementById('open-add-product-btn').addEventListener('click', () => {
+      document.getElementById('product-form').reset();
+      document.getElementById('edit-prod-id').value = '';
+      document.getElementById('modal-product-title').textContent = 'Add New Jersey';
+      selectedImages.splice(0, selectedImages.length);
+      renderSelectedImages();
+      
+      document.getElementById('f-stock-s').value = '10';
+      document.getElementById('f-stock-m').value = '15';
+      document.getElementById('f-stock-l').value = '15';
+      document.getElementById('f-stock-xl').value = '10';
+      document.getElementById('f-stock-xxl').value = '5';
+      
+      modal.classList.add('open');
+    });
+
+    document.getElementById('close-product-modal').addEventListener('click', () => {
+      modal.classList.remove('open');
+    });
+
+    function openEditModal(p) {
+      document.getElementById('edit-prod-id').value = p.id;
+      document.getElementById('modal-product-title').textContent = `Edit ${p.name}`;
+      document.getElementById('f-name').value = p.name;
+      document.getElementById('f-team').value = p.team;
+      document.getElementById('f-league').value = p.league;
+      document.getElementById('f-season').value = p.season;
+      document.getElementById('f-category').value = p.category_id || '';
+      document.getElementById('f-price').value = p.price;
+      document.getElementById('f-old-price').value = p.old_price || '';
+      document.getElementById('f-description').value = p.description || '';
+      document.getElementById('f-search-tags').value = p.search_tags || '';
+      document.getElementById('f-material').value = p.material || '';
+      document.getElementById('f-is-custom').value = p.is_customizable ? '1' : '0';
+      document.getElementById('f-custom-price').value = p.customization_price || 300;
+      document.getElementById('f-is-featured').checked = Boolean(p.is_featured);
+      document.getElementById('f-is-new').checked = Boolean(p.is_new);
+
+      selectedImages.splice(0, selectedImages.length);
+      renderSelectedImages();
+      imageHelp.textContent = 'Existing photos are kept unless you upload replacement photos.';
+
+      modal.classList.add('open');
+    }
+
+    document.getElementById('product-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const editId = document.getElementById('edit-prod-id').value;
+      const submitBtn = document.getElementById('save-product-submit-btn');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = editId ? 'Updating Jersey...' : 'Publishing Jersey...';
+
+      const stockMap = {
+        S: Number(document.getElementById('f-stock-s').value || 0),
+        M: Number(document.getElementById('f-stock-m').value || 0),
+        L: Number(document.getElementById('f-stock-l').value || 0),
+        XL: Number(document.getElementById('f-stock-xl').value || 0),
+        XXL: Number(document.getElementById('f-stock-xxl').value || 0)
+      };
+
+      const formData = new FormData();
+      formData.append('name', document.getElementById('f-name').value.trim());
+      formData.append('team', document.getElementById('f-team').value.trim());
+      formData.append('league', document.getElementById('f-league').value.trim());
+      formData.append('season', document.getElementById('f-season').value.trim());
+      formData.append('category_id', document.getElementById('f-category').value);
+      formData.append('price', document.getElementById('f-price').value);
+      formData.append('old_price', document.getElementById('f-old-price').value || '');
+      formData.append('description', document.getElementById('f-description').value);
+      formData.append('search_tags', document.getElementById('f-search-tags').value.trim());
+      formData.append('material', document.getElementById('f-material').value);
+      formData.append('is_customizable', document.getElementById('f-is-custom').value === '1' ? '1' : '0');
+      formData.append('customization_price', document.getElementById('f-custom-price').value);
+      formData.append('is_featured', document.getElementById('f-is-featured').checked ? '1' : '0');
+      formData.append('is_new', document.getElementById('f-is-new').checked ? '1' : '0');
+      formData.append('stock_json', JSON.stringify(stockMap));
+
+      if (!editId && selectedImages.length < 2) {
+        showAdminToast('Please upload at least 2 product photos.', 'error', 'Photos Required');
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        return;
+      }
+
+      selectedImages.forEach(file => formData.append('images', file));
+
+      try {
+        if (editId) {
+          await adminApiRequest(`/products/${editId}`, {
+            method: 'PUT',
+            body: formData
+          });
+          playAdminSound('success');
+          showAdminToast(`"${document.getElementById('f-name').value.trim()}" updated successfully!`, 'success', 'Jersey Updated');
+        } else {
+          await adminApiRequest('/products', {
+            method: 'POST',
+            body: formData
+          });
+          playAdminSound('success');
+          showAdminToast(`"${document.getElementById('f-name').value.trim()}" added to store catalog!`, 'success', 'Jersey Published');
+        }
+
+        modal.classList.remove('open');
+        loadProducts();
+      } catch (err) {
+        playAdminSound('error');
+        showAdminToast(err.message || 'Error saving product', 'error', 'Action Failed');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+
+    document.getElementById('prod-search-input').addEventListener('input', loadProducts);
+    document.getElementById('prod-cat-filter').addEventListener('change', loadProducts);
+
+    init();
+  </script>
+</body>
+</html>

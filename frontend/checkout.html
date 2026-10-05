@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | Mira Sport</title>
+  <meta name="description" content="Complete your football jersey order. Enter your delivery address in Ethiopia, select CBE, Abyssinia, or Telebirr payment, and upload your payment proof.">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 32px;
+      margin: 24px 0 48px;
+    }
+    @media (min-width: 900px) {
+      .checkout-layout {
+        grid-template-columns: 1.8fr 1fr;
+        gap: 40px;
+      }
+    }
+    .checkout-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .checkout-card-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-full);
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .payment-option-card {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .payment-option-card:hover {
+      border-color: var(--text);
+    }
+    .payment-option-card.active {
+      border-color: var(--accent);
+      background: #FFFBF7;
+    }
+    .shipping-option-card {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .shipping-option-card.active {
+      border-color: var(--accent);
+      background: #FFFBF7;
+    }
+    .upload-preview-wrap {
+      margin-top: 12px;
+      position: relative;
+      width: 140px;
+      height: 140px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1.5px solid var(--border);
+    }
+    .upload-preview-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .remove-proof-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border-radius: var(--radius-full);
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header"></header>
+  <div id="mobile-top-bar" class="mobile-top-bar"></div>
+
+  <main class="container">
+    <div style="padding: 16px 0 8px;">
+      <h1 style="font-size:1.85rem; font-weight:900; color:var(--primary);">Order Checkout</h1>
+      <div style="font-size:0.88rem; color:var(--text-muted);">Please review your delivery details and submit your payment verification reference.</div>
+    </div>
+
+    <form id="checkout-form">
+      <div class="checkout-layout">
+        
+        <!-- Left: Form Steps -->
+        <div>
+          
+          <!-- Step 1: Customer & Delivery Address -->
+          <div class="checkout-card">
+            <h2 class="checkout-card-title">
+              <span class="step-number">1</span>
+              <span>Delivery Details (Ethiopia)</span>
+            </h2>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+              <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">Full Name *</label>
+                <input type="text" id="cust-name" class="form-input" placeholder="e.g. Dawit Abebe" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Phone Number *</label>
+                <input type="tel" id="cust-phone" class="form-input" placeholder="+251 911 234 567" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Email Address *</label>
+                <input type="email" id="cust-email" class="form-input" placeholder="name@example.com" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Region *</label>
+                <select id="cust-region" class="form-select" required>
+                  <option value="Addis Ababa" selected>Addis Ababa</option>
+                  <option value="Oromia">Oromia</option>
+                  <option value="Amhara">Amhara</option>
+                  <option value="Sidama">Sidama</option>
+                  <option value="Dire Dawa">Dire Dawa</option>
+                  <option value="Tigray">Tigray</option>
+                  <option value="SNNPR">SNNPR</option>
+                  <option value="Other">Other Region</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">City *</label>
+                <input type="text" id="cust-city" class="form-input" value="Addis Ababa" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Sub-City</label>
+                <input type="text" id="cust-subcity" class="form-input" placeholder="e.g. Bole, Yeka, Kirkos" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Woreda / Kebele</label>
+                <input type="text" id="cust-woreda" class="form-input" placeholder="e.g. Woreda 03" />
+              </div>
+
+              <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">Specific Street Address / Landmark *</label>
+                <input type="text" id="cust-address" class="form-input" placeholder="e.g. Near Edna Mall, Behind Medhanialem Church" required />
+              </div>
+
+              <div class="form-group" style="grid-column: span 2; margin-bottom:0;">
+                <label class="form-label">Delivery Notes / Instructions (Optional)</label>
+                <textarea id="cust-notes" class="form-textarea" rows="2" placeholder="e.g. Call before arrival, leave with building security"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Shipping Method -->
+          <div class="checkout-card">
+            <h2 class="checkout-card-title">
+              <span class="step-number">2</span>
+              <span>Delivery Method</span>
+            </h2>
+
+            <div id="shipping-methods-list">
+              <!-- Dynamically populated from /api/shipping -->
+              <div style="color:var(--text-muted); font-size:0.9rem;">Loading delivery methods...</div>
+            </div>
+          </div>
+
+          <!-- Step 3: Ethiopian Payment Workflow -->
+          <div class="checkout-card">
+            <h2 class="checkout-card-title">
+              <span class="step-number">3</span>
+              <span>Ethiopian Payment Verification</span>
+            </h2>
+
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">
+              Select your payment method below. Transfer the order total externally using your bank app or Telebirr, then upload your transfer receipt and reference code.
+            </p>
+
+            <div id="payment-options-group"></div>
+
+            <!-- Dynamic Payment Instructions from DB -->
+            <div id="payment-instruction-box" style="background:#FFFBF7; border:1px solid #FFBE98; border-radius:var(--radius-md); padding:16px; margin: 16px 0;">
+              <!-- Injected from /api/settings/public -->
+            </div>
+
+            <!-- Payment Proof Upload & Reference -->
+            <div style="border-top:1px solid var(--border-light); padding-top:18px; margin-top:18px;">
+              <div class="form-group">
+                <label class="form-label">Transaction / Reference Number *</label>
+                <input type="text" id="transaction-reference-input" class="form-input" placeholder="e.g. FT240987654321 or Telebirr Trans ID" required />
+                <div class="form-help">Enter the exact transaction reference code from your SMS or digital bank receipt.</div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Upload Transfer Screenshot / Receipt *</label>
+                <input type="file" id="proof-screenshot-file" class="form-input" accept="image/*" required />
+                <div class="form-help">Attach a clear screenshot of the completed transfer confirmation screen.</div>
+                
+                <div id="proof-preview-container" class="upload-preview-wrap" style="display:none;">
+                  <img id="proof-preview-img" src="" alt="Proof Preview" />
+                  <button type="button" class="remove-proof-btn" id="remove-proof-btn" title="Remove screenshot">&times;</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Right: Order Summary -->
+        <div>
+          <div class="checkout-card" style="position:sticky; top:96px;">
+            <h2 style="font-size:1.25rem; font-weight:800; color:var(--primary); margin-bottom:18px;">Order Items</h2>
+
+            <div id="checkout-items-list" style="display:flex; flex-direction:column; gap:12px; max-height:280px; overflow-y:auto; margin-bottom:18px;">
+              <!-- Injected items -->
+            </div>
+
+            <div style="border-top:1px solid var(--border-light); padding-top:14px;">
+              <div class="summary-row">
+                <span>Items Subtotal</span>
+                <span id="co-subtotal" style="font-weight:700; color:var(--text);">0 ETB</span>
+              </div>
+
+              <div class="summary-row">
+                <span>Delivery Fee</span>
+                <span id="co-shipping" style="font-weight:700; color:var(--text);">150 ETB</span>
+              </div>
+
+              <div class="summary-row total">
+                <span>Total Amount</span>
+                <span id="co-total" style="color:var(--accent);">0 ETB</span>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-order-btn" style="margin-top:20px;">
+                Confirm Order &amp; Submit Proof
+              </button>
+
+              <div style="margin-top:16px; font-size:0.78rem; color:var(--text-muted); line-height:1.5;">
+                By placing this order, you authorize manual verification of your transfer. An administrator will inspect the reference and progress your status to <strong>Processing</strong>.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </form>
+  </main>
+
+  <footer class="footer"></footer>
+  <nav class="mobile-nav"></nav>
+
+  <script type="module">
+    import { renderStoreNavigation, apiRequest, showToast, getUser, getSessionId, updateNavBadges } from '/js/api.js';
+
+    renderStoreNavigation('cart');
+
+    let cartData = null;
+    let shippingMethods = [];
+    let selectedShippingId = null;
+    let selectedShippingCost = 150;
+    let selectedPaymentMethod = '';
+    let paymentMethods = [];
+    let storeSettings = null;
+
+    // Load initial checkout state
+    async function initCheckout() {
+      try {
+        const [cartRes, shipRes, setRes] = await Promise.all([
+          apiRequest('/cart'),
+          apiRequest('/shipping'),
+          apiRequest('/settings/public')
+        ]);
+
+        cartData = cartRes.cart;
+        shippingMethods = shipRes.methods || [];
+        storeSettings = setRes.settings || {};
+
+        if (!cartData || !cartData.items || cartData.items.length === 0) {
+          window.location.href = '/cart.html';
+          return;
+        }
+
+        // Auto-fill customer if logged in
+        const user = getUser();
+        if (user) {
+          document.getElementById('cust-name').value = user.full_name || '';
+          document.getElementById('cust-email').value = user.email || '';
+          document.getElementById('cust-phone').value = user.phone || '';
+        }
+
+        // Render Shipping Methods
+        renderShippingMethods();
+
+        paymentMethods = setRes.settings.payment_methods || [];
+        renderPaymentMethods();
+        updatePaymentInstructions();
+
+        // Render Items Summary
+        renderOrderItems();
+
+      } catch (e) {
+        showToast('Error initializing checkout', 'error');
+      }
+    }
+
+    function renderShippingMethods() {
+      const container = document.getElementById('shipping-methods-list');
+      if (!shippingMethods || shippingMethods.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);">No shipping methods available</div>';
+        return;
+      }
+
+      selectedShippingId = shippingMethods[0].id;
+      selectedShippingCost = shippingMethods[0].price;
+
+      container.innerHTML = shippingMethods.map((sm, idx) => `
+        <div class="shipping-option-card ${idx === 0 ? 'active' : ''}" data-id="${sm.id}" data-price="${sm.price}">
+          <div>
+            <div style="font-weight:800; font-size:0.95rem; color:var(--text);">${sm.name}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted);">${sm.estimated_days}</div>
+          </div>
+          <div style="font-weight:900; font-size:1.05rem; color:var(--primary);">${sm.price.toLocaleString()} ETB</div>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('.shipping-option-card').forEach(card => {
+        card.addEventListener('click', () => {
+          container.querySelectorAll('.shipping-option-card').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          selectedShippingId = parseInt(card.getAttribute('data-id'), 10);
+          selectedShippingCost = parseFloat(card.getAttribute('data-price'));
+          updateTotals();
+        });
+      });
+
+      updateTotals();
+    }
+
+    function renderOrderItems() {
+      const list = document.getElementById('checkout-items-list');
+      list.innerHTML = cartData.items.map(item => `
+        <div style="display:flex; align-items:center; gap:12px; font-size:0.88rem;">
+          <img src="${item.product_image || '/uploads/products/product-placeholder.jpg'}" style="width:48px; height:48px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border);" />
+          <div style="flex:1;">
+            <div style="font-weight:700; color:var(--text); line-height:1.2;">${item.product_name}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${item.size} &bull; Qty: ${item.quantity} ${item.has_customization ? `(Print: ${item.player_name} #${item.player_number})` : ''}</div>
+          </div>
+          <div style="font-weight:800; color:var(--primary);">${item.total_price.toLocaleString()} ETB</div>
+        </div>
+      `).join('');
+    }
+
+    function updateTotals() {
+      const subtotal = cartData ? cartData.subtotal : 0;
+      const total = subtotal + selectedShippingCost;
+      document.getElementById('co-subtotal').textContent = `${subtotal.toLocaleString()} ETB`;
+      document.getElementById('co-shipping').textContent = `${selectedShippingCost.toLocaleString()} ETB`;
+      document.getElementById('co-total').textContent = `${total.toLocaleString()} ETB`;
+    }
+
+    function updatePaymentInstructions() {
+      const box = document.getElementById('payment-instruction-box');
+      if (!storeSettings) return;
+
+      if (selectedPaymentMethod.includes('CBE') || selectedPaymentMethod.includes('Commercial Bank')) {
+        const cbe = storeSettings.cbe || {};
+        box.innerHTML = `
+          <div style="font-weight:800; color:#6B21A8; margin-bottom:4px;">Commercial Bank of Ethiopia (CBE) Instructions:</div>
+          <div style="font-size:0.92rem; color:var(--text); margin-bottom:6px;">
+            Account Number: <strong style="font-family:var(--font-mono); font-size:1.05rem; color:var(--primary);">${cbe.account_number || 'Not configured'}</strong><br>
+            Account Holder: <strong>${cbe.account_name || 'Not configured'}</strong>
+          </div>
+          <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
+            ${cbe.instructions || 'CBE payment details have not been configured yet. Please contact the store before submitting payment.'}
+          </div>
+        `;
+      } else if (selectedPaymentMethod.includes('Abyssinia')) {
+        const boa = storeSettings.abyssinia || {};
+        box.innerHTML = `
+          <div style="font-weight:800; color:#9D174D; margin-bottom:4px;">Bank of Abyssinia Instructions:</div>
+          <div style="font-size:0.92rem; color:var(--text); margin-bottom:6px;">
+            Account Number: <strong style="font-family:var(--font-mono); font-size:1.05rem; color:var(--primary);">${boa.account_number || 'Not configured'}</strong><br>
+            Account Holder: <strong>${boa.account_name || 'Not configured'}</strong>
+          </div>
+          <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
+            ${boa.instructions || 'Bank of Abyssinia payment details have not been configured yet. Please contact the store before submitting payment.'}
+          </div>
+        `;
+      } else {
+        const tele = storeSettings.telebirr || {};
+        box.innerHTML = `
+          <div style="font-weight:800; color:#0369A1; margin-bottom:4px;">Telebirr Mobile Money Instructions:</div>
+          <div style="font-size:0.92rem; color:var(--text); margin-bottom:6px;">
+            Phone / Merchant Number: <strong style="font-family:var(--font-mono); font-size:1.05rem; color:var(--primary);">${tele.phone || 'Not configured'}</strong><br>
+            Recipient Name: <strong>${tele.account_name || 'Not configured'}</strong>
+          </div>
+          <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
+            ${tele.instructions || 'Telebirr payment details have not been configured yet. Please contact the store before submitting payment.'}
+          </div>
+        `;
+      }
+    }
+
+    // Payment Option clicks
+    document.querySelectorAll('#payment-options-group .payment-option-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('#payment-options-group .payment-option-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        selectedPaymentMethod = card.getAttribute('data-method');
+        updatePaymentInstructions();
+      });
+    });
+
+    // Screenshot file preview
+    const fileInput = document.getElementById('proof-screenshot-file');
+    const previewContainer = document.getElementById('proof-preview-container');
+    const previewImg = document.getElementById('proof-preview-img');
+    const removeBtn = document.getElementById('remove-proof-btn');
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      }
+    });
+
+    removeBtn.addEventListener('click', () => {
+      fileInput.value = '';
+      previewContainer.style.display = 'none';
+      previewImg.src = '';
+    });
+
+    // Submit Checkout Form
+    document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!fileInput.files || !fileInput.files[0]) {
+        showToast('Please attach your payment screenshot or transfer receipt', 'error');
+        return;
+      }
+
+      const refNum = document.getElementById('transaction-reference-input').value.trim();
+      if (!refNum) {
+        showToast('Transaction reference number is required', 'error');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submit-order-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Processing Order & Uploading Proof...';
+
+      try {
+        // Step 1: Create Order
+        const orderPayload = {
+          customer_name: document.getElementById('cust-name').value.trim(),
+          customer_email: document.getElementById('cust-email').value.trim(),
+          customer_phone: document.getElementById('cust-phone').value.trim(),
+          region: document.getElementById('cust-region').value,
+          city: document.getElementById('cust-city').value.trim(),
+          sub_city: document.getElementById('cust-subcity').value.trim(),
+          woreda: document.getElementById('cust-woreda').value.trim(),
+          address: document.getElementById('cust-address').value.trim(),
+          delivery_notes: document.getElementById('cust-notes').value.trim(),
+          shipping_method_id: selectedShippingId,
+          payment_method: selectedPaymentMethod,
+          items: cartData.items,
+          session_id: getSessionId()
+        };
+
+        const createRes = await apiRequest('/orders', {
+          method: 'POST',
+          body: JSON.stringify(orderPayload)
+        });
+
+        const order = createRes.order;
+
+        // Step 2: Upload Payment Proof
+        const proofFormData = new FormData();
+        proofFormData.append('transaction_reference', refNum);
+        proofFormData.append('payment_method', selectedPaymentMethod);
+        proofFormData.append('screenshot', fileInput.files[0]);
+
+        await apiRequest(`/orders/${order.order_number}/payment-proof`, {
+          method: 'POST',
+          body: proofFormData
+        });
+
+        await updateNavBadges();
+        showToast('Order placed successfully! Redirecting to tracking...', 'success');
+
+        setTimeout(() => {
+          window.location.href = `/tracking.html?order=${order.order_number}&placed=1`;
+        }, 1200);
+
+      } catch (err) {
+        showToast(err.message || 'Error completing checkout', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Confirm Order & Submit Proof';
+      }
+    });
+
+    initCheckout();
+  </script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Verification Queue | Mira Sport Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-header"></header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h2 class="admin-card-title">Ethiopian Payment Verification Queue</h2>
+            <div style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
+              Verify CBE, Bank of Abyssinia, and Telebirr transfer proofs submitted by customers.
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Payment Method</th>
+                <th>Order Amount</th>
+                <th>Reference Code</th>
+                <th>Screenshot</th>
+                <th>Submitted</th>
+                <th>Verification Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="payments-queue-tbody">
+              <tr><td colspan="9" style="text-align:center; padding:32px; color:var(--text-muted);">Loading payment verifications...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Rejection Modal -->
+  <div class="modal-overlay" id="reject-modal">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" id="close-reject-modal">&times;</button>
+      <h3 style="font-size:1.25rem; font-weight:800; color:var(--error); margin-bottom:6px;">Reject Payment Verification</h3>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">
+        A rejection reason is strictly required so the customer can upload a valid transfer receipt.
+      </p>
+
+      <form id="reject-payment-form">
+        <input type="hidden" id="reject-proof-id" />
+        <div class="form-group">
+          <label class="form-label">Rejection Reason *</label>
+          <textarea id="rejection-reason-text" class="form-textarea" rows="3" placeholder="e.g. Transaction ID not found on CBE bank statement, or transferred amount does not match order total." required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-block" style="background:var(--error); color:#fff; font-weight:800;">
+          Confirm Payment Rejection
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { renderAdminLayout, adminApiRequest, showAdminToast, playAdminSound } from '/js/admin.js';
+
+    renderAdminLayout('payments', 'Payment Verification');
+
+    async function loadPayments() {
+      const tbody = document.getElementById('payments-queue-tbody');
+      try {
+        const res = await adminApiRequest('/payments');
+        if (!res.payments || res.payments.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:32px; color:var(--text-muted);">No payment proofs submitted yet.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = res.payments.map(p => `
+          <tr>
+            <td>
+              <a href="/admin/orders.html?search=${p.order_number}" style="font-family:var(--font-mono); font-weight:800; color:var(--accent);">
+                ${p.order_number}
+              </a>
+            </td>
+            <td>
+              <strong>${p.customer_name}</strong><br>
+              <span style="font-size:0.78rem; color:var(--text-muted);">${p.customer_phone}</span>
+            </td>
+            <td><strong>${p.payment_method}</strong></td>
+            <td><strong style="color:var(--primary); font-size:1.05rem;">${p.order_total.toLocaleString()} ETB</strong></td>
+            <td><code style="font-family:var(--font-mono); font-weight:800; font-size:0.95rem; background:var(--surface-alt); padding:3px 8px; border-radius:4px;">${p.transaction_reference}</code></td>
+            <td>
+              <a href="${p.screenshot_url}" target="_blank" title="Click to view full image">
+                <img src="${p.screenshot_url}" class="proof-thumbnail" alt="Receipt" />
+              </a>
+            </td>
+            <td style="font-size:0.82rem; color:var(--text-muted);">${new Date(p.submitted_at).toLocaleString()}</td>
+            <td>
+              <span class="status-pill ${p.status.toLowerCase().replace(/[^a-z]+/g, '-')}">${p.status}</span>
+              ${p.admin_notes ? `<div style="font-size:0.75rem; color:var(--error); margin-top:4px;">${p.admin_notes}</div>` : ''}
+            </td>
+            <td>
+              ${p.status === 'Pending Verification' ? `
+                <div style="display:flex; gap:6px;">
+                  <button type="button" class="btn btn-sm btn-primary verify-btn" data-id="${p.id}">
+                    Verify
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline reject-btn" data-id="${p.id}" style="color:var(--error); border-color:var(--error);">
+                    Reject
+                  </button>
+                </div>
+              ` : `
+                <span style="font-size:0.8rem; color:var(--text-muted);">Completed</span>
+              `}
+            </td>
+          </tr>
+        `).join('');
+
+        tbody.querySelectorAll('.verify-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            btn.disabled = true;
+            btn.textContent = 'Verifying...';
+
+            try {
+              await adminApiRequest(`/payments/${id}/verify`, { method: 'POST' });
+              playAdminSound('success');
+              showAdminToast('Payment verified successfully! Order moved to Processing.', 'success', 'Payment Verified');
+              loadPayments();
+            } catch (err) {
+              playAdminSound('error');
+              showAdminToast(err.message || 'Error verifying payment', 'error', 'Action Failed');
+              btn.disabled = false;
+              btn.textContent = 'Verify';
+            }
+          });
+        });
+
+        tbody.querySelectorAll('.reject-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            document.getElementById('reject-proof-id').value = id;
+            document.getElementById('reject-modal').classList.add('open');
+          });
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--error);">Failed to load payment verifications.</td></tr>`;
+      }
+    }
+
+    // Rejection modal
+    const rejectModal = document.getElementById('reject-modal');
+    document.getElementById('close-reject-modal').addEventListener('click', () => {
+      rejectModal.classList.remove('open');
+    });
+
+    document.getElementById('reject-payment-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('reject-proof-id').value;
+      const reason = document.getElementById('rejection-reason-text').value.trim();
+
+      if (!reason) {
+        showAdminToast('Rejection reason is required', 'error', 'Notice');
+        return;
+      }
+
+      try {
+        await adminApiRequest(`/payments/${id}/reject`, {
+          method: 'POST',
+          body: JSON.stringify({ reason })
+        });
+        playAdminSound('warning');
+        showAdminToast('Payment transfer rejected with recorded reason.', 'info', 'Payment Rejected');
+        rejectModal.classList.remove('open');
+        document.getElementById('reject-payment-form').reset();
+        loadPayments();
+      } catch (err) {
+        playAdminSound('error');
+        showAdminToast(err.message || 'Error rejecting payment', 'error', 'Action Failed');
+      }
+    });
+
+    loadPayments();
+
+    // Live update on new payment proof submissions
+    window.addEventListener('admin:payment-submitted', () => {
+      loadPayments();
+    });
+    window.addEventListener('admin:new-order', () => {
+      loadPayments();
+    });
+  </script>
+</body>
+</html>

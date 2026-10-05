@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Accounts | Mira Sport Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-header"></header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h2 class="admin-card-title">Registered Customers</h2>
+            <div style="font-size:0.85rem; color:var(--text-muted);">Real customer accounts and order activity in database</div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Customer Name</th>
+                <th>Email Address</th>
+                <th>Phone Number</th>
+                <th>Orders Count</th>
+                <th>Total Spent</th>
+                <th>Registered Date</th>
+              </tr>
+            </thead>
+            <tbody id="customers-tbody">
+              <tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted);">Loading customers...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { renderAdminLayout, adminApiRequest } from '/js/admin.js';
+
+    renderAdminLayout('customers', 'Registered Customers');
+
+    async function loadCustomers() {
+      const tbody = document.getElementById('customers-tbody');
+      try {
+        const res = await adminApiRequest('/customers');
+        if (!res.customers || res.customers.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted);">No registered customers yet.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = res.customers.map(c => `
+          <tr>
+            <td><strong style="color:var(--primary); font-size:0.95rem;">${c.full_name}</strong></td>
+            <td>${c.email}</td>
+            <td>${c.phone || '<span style="color:var(--text-subtle);">None</span>'}</td>
+            <td><strong>${c.orders_count} orders</strong></td>
+            <td><strong>${c.total_spent.toLocaleString()} ETB</strong></td>
+            <td>${new Date(c.created_at).toLocaleDateString()}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--error);">Failed to load customers.</td></tr>`;
+      }
+    }
+
+    loadCustomers();
+  </script>
+</body>
+</html>

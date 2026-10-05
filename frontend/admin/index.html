@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Mira Sport</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-header"></header>
+
+    <main class="admin-content">
+      <!-- Honest Metrics Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div>
+            <div class="stat-value" id="stat-total-orders">0</div>
+            <div class="stat-label">Total Orders</div>
+          </div>
+          <div class="stat-icon blue">Orders</div>
+        </div>
+
+        <div class="stat-card">
+          <div>
+            <div class="stat-value" id="stat-pending-payments" style="color:var(--accent);">0</div>
+            <div class="stat-label">Pending Payment Verification</div>
+          </div>
+          <div class="stat-icon orange">Payment</div>
+        </div>
+
+        <div class="stat-card">
+          <div>
+            <div class="stat-value" id="stat-processing-orders">0</div>
+            <div class="stat-label">Processing / Printing</div>
+          </div>
+          <div class="stat-icon orange">Processing</div>
+        </div>
+
+        <div class="stat-card">
+          <div>
+            <div class="stat-value" id="stat-revenue" style="font-size:1.6rem;">0 ETB</div>
+            <div class="stat-label">Verified Revenue</div>
+          </div>
+          <div class="stat-icon green">Revenue</div>
+        </div>
+
+        <div class="stat-card">
+          <div>
+            <div class="stat-value" id="stat-products">0</div>
+            <div class="stat-label">Total Jersey Models</div>
+          </div>
+          <div class="stat-icon">Products</div>
+        </div>
+
+        <div class="stat-card">
+          <div>
+            <div class="stat-value" id="stat-low-stock">0</div>
+            <div class="stat-label">Low Stock Alerts (&le;5)</div>
+          </div>
+          <div class="stat-icon" style="color:var(--warning);">Stock</div>
+        </div>
+
+        <div class="stat-card">
+          <div>
+            <div class="stat-value" id="stat-customers">0</div>
+            <div class="stat-label">Registered Customers</div>
+          </div>
+          <div class="stat-icon">Customers</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr; gap:24px;">
+        
+        <!-- Pending Payment Verification Alerts -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2 class="admin-card-title">Pending Payment Verifications Queue</h2>
+            <a href="/admin/payments.html" class="btn btn-outline btn-sm">View Verification Portal &rarr;</a>
+          </div>
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Customer</th>
+                  <th>Method</th>
+                  <th>Amount</th>
+                  <th>Reference</th>
+                  <th>Screenshot</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="pending-proofs-tbody">
+                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">Loading payment verifications...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2 class="admin-card-title">Recent Customer Orders</h2>
+            <a href="/admin/orders.html" class="btn btn-outline btn-sm">View All Orders &rarr;</a>
+          </div>
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Customer</th>
+                  <th>Total</th>
+                  <th>Method</th>
+                  <th>Payment Status</th>
+                  <th>Order Status</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="recent-orders-tbody">
+                <tr><td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">Loading recent orders...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { renderAdminLayout, adminApiRequest } from '/js/admin.js';
+
+    renderAdminLayout('dashboard', 'Operations Dashboard');
+
+    async function loadDashboard() {
+      try {
+        const res = await adminApiRequest('/dashboard');
+        const s = res.stats;
+
+        document.getElementById('stat-total-orders').textContent = s.totalOrders;
+        document.getElementById('stat-pending-payments').textContent = s.pendingVerification;
+        document.getElementById('stat-processing-orders').textContent = s.processingOrders;
+        document.getElementById('stat-revenue').textContent = `${s.totalRevenue.toLocaleString()} ETB`;
+        document.getElementById('stat-products').textContent = s.totalProducts;
+        document.getElementById('stat-low-stock').textContent = s.lowStockCount;
+        document.getElementById('stat-customers').textContent = s.totalCustomers;
+
+        // Pending Proofs
+        const proofsTbody = document.getElementById('pending-proofs-tbody');
+        if (!res.pendingProofs || res.pendingProofs.length === 0) {
+          proofsTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">No payments pending verification. All caught up!</td></tr>`;
+        } else {
+          proofsTbody.innerHTML = res.pendingProofs.map(p => `
+            <tr>
+              <td><a href="/admin/orders.html?search=${p.order_number}" style="font-weight:800; color:var(--accent); font-family:var(--font-mono);">${p.order_number}</a></td>
+              <td>${p.customer_name}</td>
+              <td><strong>${p.payment_method}</strong></td>
+              <td><strong>${p.order_total.toLocaleString()} ETB</strong></td>
+              <td><code style="font-weight:700;">${p.transaction_reference}</code></td>
+              <td>
+                <a href="${p.screenshot_url}" target="_blank">
+                  <img src="${p.screenshot_url}" class="proof-thumbnail" alt="Proof" />
+                </a>
+              </td>
+              <td>
+                <a href="/admin/payments.html" class="btn btn-primary btn-sm">Inspect &amp; Verify</a>
+              </td>
+            </tr>
+          `).join('');
+        }
+
+        // Recent Orders
+        const ordersTbody = document.getElementById('recent-orders-tbody');
+        if (!res.recentOrders || res.recentOrders.length === 0) {
+          ordersTbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">No orders recorded yet.</td></tr>`;
+        } else {
+          ordersTbody.innerHTML = res.recentOrders.map(o => `
+            <tr>
+              <td><strong style="font-family:var(--font-mono);">${o.order_number}</strong></td>
+              <td>${o.customer_name}</td>
+              <td><strong>${o.total.toLocaleString()} ETB</strong></td>
+              <td>${o.payment_method}</td>
+              <td><span class="status-pill ${o.payment_status.toLowerCase().replace(/[^a-z]+/g, '-')}">${o.payment_status}</span></td>
+              <td><span class="status-pill ${o.order_status.toLowerCase().replace(/[^a-z]+/g, '-')}">${o.order_status}</span></td>
+              <td>${new Date(o.created_at).toLocaleDateString()}</td>
+              <td>
+                <a href="/admin/orders.html?order_id=${o.id}" class="btn btn-outline btn-sm">Manage</a>
+              </td>
+            </tr>
+          `).join('');
+        }
+
+      } catch (err) {
+        console.error('Error loading dashboard:', err);
+      }
+    }
+
+    loadDashboard();
+
+    // Real-time live dashboard refresh on incoming orders and payment uploads
+    window.addEventListener('admin:new-order', () => {
+      loadDashboard();
+    });
+
+    window.addEventListener('admin:payment-submitted', () => {
+      loadDashboard();
+    });
+  </script>
+</body>
+</html>

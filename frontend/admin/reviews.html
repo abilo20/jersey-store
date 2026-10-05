@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Reviews Moderation | Mira Sport Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-header"></header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h2 class="admin-card-title">Customer Reviews Moderation</h2>
+            <div style="font-size:0.85rem; color:var(--text-muted);">
+              All reviews are submitted as "Pending". Only "Approved" reviews are publicly visible to customers.
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Jersey</th>
+                <th>Author</th>
+                <th>Rating</th>
+                <th>Headline &amp; Comment</th>
+                <th>Photo</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Moderation Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reviews-tbody">
+              <tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-muted);">Loading reviews...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { renderAdminLayout, adminApiRequest, showAdminToast, playAdminSound } from '/js/admin.js';
+
+    renderAdminLayout('reviews', 'Reviews Moderation');
+
+    async function loadReviews() {
+      const tbody = document.getElementById('reviews-tbody');
+      try {
+        const res = await adminApiRequest('/reviews');
+        if (!res.reviews || res.reviews.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-muted);">No reviews submitted yet.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = res.reviews.map(r => `
+          <tr>
+            <td><strong>${r.product_name}</strong></td>
+            <td>${r.user_name}</td>
+            <td style="color:#F59E0B; font-weight:700;">${'★'.repeat(r.rating)} (${r.rating}/5)</td>
+            <td>
+              <div style="font-weight:700; color:var(--primary);">${r.title}</div>
+              <div style="font-size:0.82rem; color:var(--text-muted); max-width:320px;">${r.comment}</div>
+            </td>
+            <td>
+              ${r.image_url ? `<a href="${r.image_url}" target="_blank"><img src="${r.image_url}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;" /></a>` : '<span style="color:var(--text-subtle); font-size:0.75rem;">None</span>'}
+            </td>
+            <td>
+              <span class="status-pill ${r.status.toLowerCase()}">${r.status}</span>
+            </td>
+            <td style="font-size:0.8rem; color:var(--text-muted);">${new Date(r.created_at).toLocaleDateString()}</td>
+            <td>
+              <div style="display:flex; gap:6px;">
+                ${r.status !== 'Approved' ? `<button type="button" class="btn btn-outline btn-sm app-btn" data-id="${r.id}" style="color:var(--success); border-color:var(--success);">Approve</button>` : ''}
+                ${r.status !== 'Hidden' ? `<button type="button" class="btn btn-outline btn-sm hide-btn" data-id="${r.id}">Hide</button>` : ''}
+                <button type="button" class="btn btn-ghost btn-sm del-btn" data-id="${r.id}" style="color:var(--error);">&times;</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+
+        tbody.querySelectorAll('.app-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            try {
+              await adminApiRequest(`/reviews/${id}/status`, { method: 'PUT', body: JSON.stringify({ status: 'Approved' }) });
+              playAdminSound('success');
+              showAdminToast('Review approved and visible to customers', 'success', 'Review Approved');
+              loadReviews();
+            } catch (e) {
+              playAdminSound('error');
+              showAdminToast(e.message || 'Action failed', 'error');
+            }
+          });
+        });
+
+        tbody.querySelectorAll('.hide-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            try {
+              await adminApiRequest(`/reviews/${id}/status`, { method: 'PUT', body: JSON.stringify({ status: 'Hidden' }) });
+              playAdminSound('info');
+              showAdminToast('Review hidden from product page', 'info', 'Review Hidden');
+              loadReviews();
+            } catch (e) {
+              playAdminSound('error');
+              showAdminToast(e.message || 'Action failed', 'error');
+            }
+          });
+        });
+
+        tbody.querySelectorAll('.del-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            try {
+              await adminApiRequest(`/reviews/${id}`, { method: 'DELETE' });
+              playAdminSound('info');
+              showAdminToast('Review deleted permanently', 'info', 'Review Deleted');
+              loadReviews();
+            } catch (e) {
+              playAdminSound('error');
+              showAdminToast(e.message || 'Action failed', 'error');
+            }
+          });
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--error);">Failed to load reviews.</td></tr>`;
+      }
+    }
+
+    loadReviews();
+  </script>
+</body>
+</html>

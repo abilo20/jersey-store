@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Favorites | Mira Sport</title>
+  <meta name="description" content="View your saved football jerseys, check stock availability, and quickly add items to your shopping cart.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <header class="header"></header>
+  <div id="mobile-top-bar" class="mobile-top-bar"></div>
+
+  <main class="container">
+    <div style="padding: 16px 0 8px;">
+      <h1 style="font-size:1.85rem; font-weight:900; color:var(--primary);">My Favorites</h1>
+      <div style="font-size:0.88rem; color:var(--text-muted);" id="favorites-subtitle">Saved football jerseys</div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="favorites-empty-view" class="empty-state" style="display:none;">
+      <div class="empty-state-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+      </div>
+      <div class="empty-state-title">Your favorites is empty</div>
+      <p class="empty-state-desc">You haven't saved any football kits yet. Click the heart icon on any jersey to save it here.</p>
+      <a href="/shop.html" class="btn btn-primary">Browse All Jerseys</a>
+    </div>
+
+    <!-- Favorites Grid -->
+    <div id="favorites-grid" class="product-grid" style="margin: 24px 0 48px;">
+      <!-- Populated dynamically -->
+      <div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">Loading your favorites...</div>
+    </div>
+  </main>
+
+  <footer class="footer"></footer>
+  <nav class="mobile-nav"></nav>
+
+  <script type="module">
+    import { renderStoreNavigation, apiRequest, getIcon, showToast, isLoggedIn, updateNavBadges } from '/js/api.js';
+
+    renderStoreNavigation('favorites');
+
+    if (!isLoggedIn()) {
+      window.location.href = '/login.html?redirect=/favorites.html';
+    }
+
+    async function loadFavorites() {
+      const grid = document.getElementById('favorites-grid');
+      const emptyView = document.getElementById('favorites-empty-view');
+      const subtitle = document.getElementById('favorites-subtitle');
+
+      try {
+        const res = await apiRequest('/wishlist');
+        if (!res.items || res.items.length === 0) {
+          grid.style.display = 'none';
+          emptyView.style.display = 'block';
+          subtitle.textContent = '0 items saved';
+          return;
+        }
+
+        grid.style.display = 'grid';
+        emptyView.style.display = 'none';
+        subtitle.textContent = `${res.items.length} item${res.items.length === 1 ? '' : 's'} saved`;
+
+        grid.innerHTML = res.items.map(p => `
+          <div class="product-card" data-id="${p.id}">
+            <div class="product-image-wrap">
+              <a href="/product.html?slug=${p.slug}" style="display:block; width:100%; height:100%;">
+                <img src="${p.primary_image || '/uploads/products/product-placeholder.jpg'}" alt="${p.name}" />
+              </a>
+              <button type="button" class="like-button-corner liked remove-favorite-btn" data-id="${p.id}" title="Remove from favorites">
+                ${getIcon('trash', 16)}
+              </button>
+            </div>
+            <div class="product-info">
+              <div class="product-team">${p.team} &bull; ${p.season}</div>
+              <a href="/product.html?slug=${p.slug}" class="product-title">${p.name}</a>
+              <div class="product-price-row">
+                <span class="price-current">${p.price.toLocaleString()} ETB</span>
+                <a href="/product.html?slug=${p.slug}" class="btn btn-outline btn-sm" style="padding:4px 10px; font-size:0.75rem;">View Kit</a>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        grid.querySelectorAll('.remove-favorite-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const pid = btn.getAttribute('data-id');
+            await apiRequest(`/wishlist/${pid}`, { method: 'DELETE' });
+            showToast('Removed from favorites');
+            await updateNavBadges();
+            await loadFavorites();
+          });
+        });
+
+      } catch (err) {
+        showToast('Error loading favorites', 'error');
+      }
+    }
+
+    loadFavorites();
+  </script>
+</body>
+</html>

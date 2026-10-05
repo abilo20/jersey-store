@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop Football Kits | Mira Sport</title>
+  <meta name="description" content="Browse authentic club, national, retro, and kids football jerseys. Filter by team, league, season, and size.">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .shop-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+      margin: 24px 0 48px;
+    }
+    @media (min-width: 900px) {
+      .shop-layout {
+        grid-template-columns: 260px 1fr;
+        gap: 36px;
+      }
+    }
+    .filter-sidebar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      height: fit-content;
+    }
+    .filter-section-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .filter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .filter-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .shop-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .mobile-filter-drawer {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      display: none;
+      justify-content: flex-end;
+    }
+    .mobile-filter-drawer.open {
+      display: flex;
+    }
+    .mobile-filter-content {
+      background: var(--surface);
+      width: 85%;
+      max-width: 360px;
+      height: 100%;
+      overflow-y: auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header"></header>
+  <div id="mobile-top-bar" class="mobile-top-bar"></div>
+
+  <main class="container">
+    <div style="padding: 16px 0 8px;">
+      <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">
+        <a href="/index.html">Home</a> &gt; <span style="color:var(--text); font-weight:600;">Shop Kits</span>
+      </div>
+      <h1 style="font-size:1.85rem; font-weight:900; color:var(--primary);" id="shop-main-heading">All Football Jerseys</h1>
+    </div>
+
+    <!-- Category Pills Strip -->
+    <div class="category-pills-bar" id="category-pills">
+      <div class="pill-item active" data-cat="">All Kits</div>
+      <!-- Injected from API -->
+    </div>
+
+    <div class="shop-layout">
+      
+      <!-- Desktop Filter Sidebar -->
+      <aside class="filter-sidebar" id="desktop-filters" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:1rem; font-weight:800; color:var(--primary);">Filters</span>
+          <button type="button" id="reset-filters-btn" style="font-size:0.8rem; font-weight:700; color:var(--accent);">Clear All</button>
+        </div>
+
+        <!-- Team Filter -->
+        <div>
+          <div class="filter-section-title">Club / Team</div>
+          <div class="filter-list" id="team-filter-list"></div>
+        </div>
+
+        <!-- League Filter -->
+        <div>
+          <div class="filter-section-title">League / Federation</div>
+          <div class="filter-list" id="league-filter-list"></div>
+        </div>
+
+        <!-- Season Filter -->
+        <div>
+          <div class="filter-section-title">Season</div>
+          <div class="filter-list" id="season-filter-list"></div>
+        </div>
+
+        <!-- Size Filter -->
+        <div>
+          <div class="filter-section-title">Size</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;" id="size-filter-list"></div>
+        </div>
+
+        <!-- Stock Availability -->
+        <div>
+          <label class="filter-checkbox-label" style="font-weight:700;">
+            <input type="checkbox" id="instock-filter-check" />
+            <span>In Stock Only</span>
+          </label>
+        </div>
+      </aside>
+
+      <!-- Products Column -->
+      <section>
+        <div class="shop-toolbar">
+          <div style="font-size:0.92rem; color:var(--text-muted);">
+            Showing <span id="product-count-text" style="font-weight:800; color:var(--text);">0</span> kits
+          </div>
+
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button type="button" class="btn btn-outline btn-sm" id="open-mobile-filters" style="display:flex;">
+              <span id="filter-icon-placeholder"></span>
+              <span>Filter</span>
+            </button>
+
+            <select id="sort-select" class="form-select" style="padding:8px 14px; font-size:0.88rem; width:auto; border-radius:var(--radius-full);">
+              <option value="recommended">Sort: Recommended</option>
+              <option value="newest">Sort: Newest First</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="rating">Top Rated</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="shop-product-grid" class="product-grid">
+          <!-- Injected dynamically -->
+        </div>
+
+        <div id="shop-empty-state" class="empty-state" style="display:none;">
+          <div class="empty-state-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </div>
+          <div class="empty-state-title">No jerseys found</div>
+          <p class="empty-state-desc">We couldn't find any jerseys matching your active search and filter criteria.</p>
+          <button type="button" class="btn btn-primary" id="empty-clear-btn">Reset All Filters</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Mobile Filter Drawer -->
+  <div class="mobile-filter-drawer" id="mobile-filter-drawer">
+    <div class="mobile-filter-content">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:1.15rem; font-weight:800; color:var(--primary);">Filter Jerseys</span>
+        <button type="button" id="close-mobile-filters" style="font-size:1.4rem; color:var(--text-muted);">&times;</button>
+      </div>
+
+      <div id="mobile-filter-body" style="display:flex; flex-direction:column; gap:20px;">
+        <!-- Cloned or rendered filters -->
+      </div>
+
+      <div style="margin-top:auto; padding-top:20px; display:flex; gap:10px;">
+        <button type="button" class="btn btn-outline btn-block" id="mobile-clear-btn">Clear</button>
+        <button type="button" class="btn btn-primary btn-block" id="mobile-apply-btn">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer"></footer>
+  <nav class="mobile-nav"></nav>
+
+  <script type="module">
+    import { renderStoreNavigation, apiRequest, getIcon, showToast, getSessionId } from '/js/api.js';
+
+    renderStoreNavigation('shop');
+
+    document.getElementById('filter-icon-placeholder').innerHTML = getIcon('sliders', 16);
+
+    // Parse URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentFilters = {
+      search: urlParams.get('search') || '',
+      category: urlParams.get('category') || '',
+      team: urlParams.get('team') || '',
+      league: urlParams.get('league') || '',
+      season: urlParams.get('season') || '',
+      size: urlParams.get('size') || '',
+      in_stock: urlParams.get('in_stock') === '1',
+      featured: urlParams.get('featured') || '',
+      is_new: urlParams.get('is_new') || '',
+      sort: urlParams.get('sort') || 'recommended'
+    };
+
+    if (window.innerWidth >= 900) {
+      document.getElementById('desktop-filters').style.display = 'flex';
+      document.getElementById('open-mobile-filters').style.display = 'none';
+    }
+
+    // Set sort select value
+    const sortSelect = document.getElementById('sort-select');
+    sortSelect.value = currentFilters.sort;
+    sortSelect.addEventListener('change', () => {
+      currentFilters.sort = sortSelect.value;
+      loadShopProducts();
+    });
+
+    // Load filter options from real DB
+    async function initFilters() {
+      try {
+        const [catRes, metaRes] = await Promise.all([
+          apiRequest('/products/categories'),
+          apiRequest('/products/filters')
+        ]);
+
+        // Category pills
+        const pillsContainer = document.getElementById('category-pills');
+        if (catRes.categories) {
+          catRes.categories.forEach(c => {
+            const pill = document.createElement('div');
+            pill.className = `pill-item ${currentFilters.category === c.slug ? 'active' : ''}`;
+            pill.textContent = c.name;
+            pill.setAttribute('data-cat', c.slug);
+            pill.addEventListener('click', () => {
+              document.querySelectorAll('.pill-item').forEach(p => p.classList.remove('active'));
+              pill.classList.add('active');
+              currentFilters.category = c.slug;
+              loadShopProducts();
+            });
+            pillsContainer.appendChild(pill);
+          });
+
+          // All kits pill
+          pillsContainer.firstElementChild.addEventListener('click', () => {
+            document.querySelectorAll('.pill-item').forEach(p => p.classList.remove('active'));
+            pillsContainer.firstElementChild.classList.add('active');
+            currentFilters.category = '';
+            loadShopProducts();
+          });
+        }
+
+        // Teams
+        const teamList = document.getElementById('team-filter-list');
+        metaRes.filters.teams.forEach(t => {
+          const lbl = document.createElement('label');
+          lbl.className = 'filter-checkbox-label';
+          lbl.innerHTML = `
+            <input type="radio" name="team_filter" value="${t}" ${currentFilters.team === t ? 'checked' : ''} />
+            <span>${t}</span>
+          `;
+          lbl.querySelector('input').addEventListener('change', (e) => {
+            currentFilters.team = e.target.checked ? t : '';
+            loadShopProducts();
+          });
+          teamList.appendChild(lbl);
+        });
+
+        // Leagues
+        const leagueList = document.getElementById('league-filter-list');
+        metaRes.filters.leagues.forEach(l => {
+          const lbl = document.createElement('label');
+          lbl.className = 'filter-checkbox-label';
+          lbl.innerHTML = `
+            <input type="radio" name="league_filter" value="${l}" ${currentFilters.league === l ? 'checked' : ''} />
+            <span>${l}</span>
+          `;
+          lbl.querySelector('input').addEventListener('change', (e) => {
+            currentFilters.league = e.target.checked ? l : '';
+            loadShopProducts();
+          });
+          leagueList.appendChild(lbl);
+        });
+
+        // Seasons
+        const seasonList = document.getElementById('season-filter-list');
+        metaRes.filters.seasons.forEach(s => {
+          const lbl = document.createElement('label');
+          lbl.className = 'filter-checkbox-label';
+          lbl.innerHTML = `
+            <input type="radio" name="season_filter" value="${s}" ${currentFilters.season === s ? 'checked' : ''} />
+            <span>${s}</span>
+          `;
+          lbl.querySelector('input').addEventListener('change', (e) => {
+            currentFilters.season = e.target.checked ? s : '';
+            loadShopProducts();
+          });
+          seasonList.appendChild(lbl);
+        });
+
+        // Sizes
+        const sizeList = document.getElementById('size-filter-list');
+        metaRes.filters.sizes.forEach(sz => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `size-btn ${currentFilters.size === sz ? 'active' : ''}`;
+          btn.style.height = '36px';
+          btn.style.minWidth = '40px';
+          btn.textContent = sz;
+          btn.addEventListener('click', () => {
+            if (currentFilters.size === sz) {
+              currentFilters.size = '';
+              btn.classList.remove('active');
+            } else {
+              sizeList.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+              currentFilters.size = sz;
+              btn.classList.add('active');
+            }
+            loadShopProducts();
+          });
+          sizeList.appendChild(btn);
+        });
+
+        // In Stock checkbox
+        const inStockCheck = document.getElementById('instock-filter-check');
+        inStockCheck.checked = currentFilters.in_stock;
+        inStockCheck.addEventListener('change', () => {
+          currentFilters.in_stock = inStockCheck.checked;
+          loadShopProducts();
+        });
+
+        // Clear all buttons
+        const clearAction = () => {
+          currentFilters = { search: '', category: '', team: '', league: '', season: '', size: '', in_stock: false, sort: 'recommended' };
+          document.querySelectorAll('.filter-sidebar input[type="radio"]').forEach(r => r.checked = false);
+          document.getElementById('instock-filter-check').checked = false;
+          document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.pill-item').forEach(p => p.classList.remove('active'));
+          pillsContainer.firstElementChild.classList.add('active');
+          loadShopProducts();
+        };
+
+        document.getElementById('reset-filters-btn').addEventListener('click', clearAction);
+        document.getElementById('empty-clear-btn').addEventListener('click', clearAction);
+
+      } catch (e) {
+        console.error('Filter init error', e);
+      }
+    }
+
+    // Load products with current filter parameters
+    async function loadShopProducts() {
+      const grid = document.getElementById('shop-product-grid');
+      const emptyBox = document.getElementById('shop-empty-state');
+      const countText = document.getElementById('product-count-text');
+
+      grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">Loading jerseys...</div>';
+      emptyBox.style.display = 'none';
+
+      const q = new URLSearchParams();
+      if (currentFilters.search) q.set('search', currentFilters.search);
+      if (currentFilters.category) q.set('category', currentFilters.category);
+      if (currentFilters.team) q.set('team', currentFilters.team);
+      if (currentFilters.league) q.set('league', currentFilters.league);
+      if (currentFilters.season) q.set('season', currentFilters.season);
+      if (currentFilters.size) q.set('size', currentFilters.size);
+      if (currentFilters.in_stock) q.set('in_stock', '1');
+      if (currentFilters.featured) q.set('featured', currentFilters.featured);
+      if (currentFilters.is_new) q.set('is_new', currentFilters.is_new);
+      if (currentFilters.sort) q.set('sort', currentFilters.sort);
+
+      try {
+        const res = await apiRequest(`/products?${q.toString()}`);
+        countText.textContent = res.pagination ? res.pagination.total : res.products.length;
+
+        if (res.products && res.products.length > 0) {
+          grid.innerHTML = res.products.map(p => {
+            const discount = p.old_price && p.old_price > p.price
+              ? Math.round(((p.old_price - p.price) / p.old_price) * 100)
+              : null;
+            const hasStock = p.total_stock > 0;
+            const stockBadge = hasStock
+              ? (p.total_stock <= 5 ? '<span class="stock-tag low-stock">Low Stock</span>' : '<span class="stock-tag in-stock">In Stock</span>')
+              : '<span class="stock-tag out-stock">Out of Stock</span>';
+
+            const stars = p.avg_rating ? `
+              <span class="rating-star-icon">★</span>
+              <span style="font-weight:700; color:var(--text);">${p.avg_rating}</span>
+              <span style="color:var(--text-subtle);">(${p.review_count || 0})</span>
+            ` : '<span style="color:var(--text-subtle); font-size:0.75rem;">No reviews yet</span>';
+
+            return `
+              <div class="product-card">
+                <div class="product-image-wrap">
+                  <a href="/product.html?slug=${p.slug}" style="display:block; width:100%; height:100%;">
+                    <img src="${p.primary_image || '/uploads/products/product-placeholder.jpg'}" alt="${p.name}" loading="lazy"/>
+                  </a>
+                  <div class="product-badge-group">
+                    ${p.is_new ? '<span class="badge-tag tag-new">New</span>' : ''}
+                    ${discount ? `<span class="badge-tag tag-sale">-${discount}%</span>` : ''}
+                    ${p.is_customizable ? '<span class="badge-tag tag-custom">Custom</span>' : ''}
+                  </div>
+                  <button type="button" class="like-button-corner like-toggle-btn" data-id="${p.id}" title="Save to favorites">
+                    ${getIcon('heart', 18)}
+                  </button>
+                </div>
+                <div class="product-info">
+                  <div class="product-team">${p.team} &bull; ${p.season}</div>
+                  <a href="/product.html?slug=${p.slug}" class="product-title">${p.name}</a>
+                  <div class="product-rating-bar">${stars}</div>
+                  <div class="product-price-row">
+                    <div>
+                      <span class="price-current">${p.price.toLocaleString()} ETB</span>
+                      ${p.old_price ? `<span class="price-old">${p.old_price.toLocaleString()}</span>` : ''}
+                    </div>
+                    <div>${stockBadge}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          // Attach like buttons
+          grid.querySelectorAll('.like-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const pid = btn.getAttribute('data-id');
+              const r = await apiRequest(`/products/${pid}/like`, {
+                method: 'POST',
+                body: JSON.stringify({ client_id: getSessionId() })
+              });
+              if (r.liked) {
+                btn.classList.add('liked');
+                showToast('Added to liked jerseys', 'success');
+              } else {
+                btn.classList.remove('liked');
+                showToast('Removed from liked jerseys');
+              }
+            });
+          });
+
+        } else {
+          grid.innerHTML = '';
+          emptyBox.style.display = 'block';
+        }
+      } catch (e) {
+        grid.innerHTML = '<div style="grid-column:1/-1; color:var(--error); text-align:center;">Failed to load products.</div>';
+      }
+    }
+
+    // Mobile Drawer Setup
+    const mobileDrawer = document.getElementById('mobile-filter-drawer');
+    document.getElementById('open-mobile-filters').addEventListener('click', () => {
+      const desktopContent = document.getElementById('desktop-filters').innerHTML;
+      document.getElementById('mobile-filter-body').innerHTML = desktopContent;
+      mobileDrawer.classList.add('open');
+    });
+    document.getElementById('close-mobile-filters').addEventListener('click', () => {
+      mobileDrawer.classList.remove('open');
+    });
+    document.getElementById('mobile-apply-btn').addEventListener('click', () => {
+      mobileDrawer.classList.remove('open');
+      loadShopProducts();
+    });
+
+    initFilters();
+    loadShopProducts();
+  </script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Categories | Mira Sport Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-header"></header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h2 class="admin-card-title">Kit Categories</h2>
+            <div style="font-size:0.85rem; color:var(--text-muted);">Organize football kits into Club, National, Retro, Kids, and Training categories</div>
+          </div>
+          <button type="button" class="btn btn-primary" id="open-add-cat-btn">+ Add Category</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Icon</th>
+                <th>Category Name</th>
+                <th>Slug</th>
+                <th>Description</th>
+                <th>Assigned Kits</th>
+                <th>Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="categories-tbody">
+              <tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-muted);">Loading categories...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Category Modal -->
+  <div class="modal-overlay" id="category-modal">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" id="close-category-modal">&times;</button>
+      <h3 style="font-size:1.25rem; font-weight:800; color:var(--primary); margin-bottom:16px;" id="cat-modal-title">Add Category</h3>
+
+      <form id="category-form">
+        <input type="hidden" id="edit-cat-id" />
+
+        <div class="form-group">
+          <label class="form-label">Category Name *</label>
+          <input type="text" id="cat-name-input" class="form-input" placeholder="e.g. Special Edition Kits" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="cat-desc-input" class="form-textarea" rows="2" placeholder="Brief description of kits in this group"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Display Order</label>
+          <input type="number" id="cat-order-input" class="form-input" value="1" min="0" />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="save-cat-btn">Save Category</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { renderAdminLayout, adminApiRequest, showAdminToast, playAdminSound } from '/js/admin.js';
+
+    renderAdminLayout('categories', 'Kit Categories');
+
+    let allCategories = [];
+
+    async function loadCategories() {
+      try {
+        const res = await adminApiRequest('/categories');
+        allCategories = res.categories || [];
+        renderTable();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('categories-tbody');
+      if (allCategories.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-muted);">No categories defined.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allCategories.map(c => `
+        <tr>
+          <td>
+            <img src="${c.image_url || ''}" style="width:36px; height:36px; border-radius:var(--radius-sm); object-fit:cover;" />
+          </td>
+          <td><strong style="color:var(--primary);">${c.name}</strong></td>
+          <td><code>${c.slug}</code></td>
+          <td style="font-size:0.85rem; color:var(--text-muted);">${c.description || '-'}</td>
+          <td><strong>${c.product_count} kits</strong></td>
+          <td>${c.display_order}</td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="btn btn-outline btn-sm edit-cat-btn" data-id="${c.id}">Edit</button>
+              <button type="button" class="btn btn-ghost btn-sm del-cat-btn" data-id="${c.id}" style="color:var(--error);">&times;</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      tbody.querySelectorAll('.edit-cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const cat = allCategories.find(x => x.id === parseInt(id, 10));
+          if (cat) openEditModal(cat);
+        });
+      });
+
+      tbody.querySelectorAll('.del-cat-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          btn.disabled = true;
+          try {
+            await adminApiRequest(`/categories/${id}`, { method: 'DELETE' });
+            playAdminSound('success');
+            showAdminToast('Category removed successfully', 'info', 'Category Deleted');
+            loadCategories();
+          } catch (e) {
+            playAdminSound('error');
+            showAdminToast(e.message || 'Cannot delete category', 'error', 'Action Failed');
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
+    const modal = document.getElementById('category-modal');
+    document.getElementById('open-add-cat-btn').addEventListener('click', () => {
+      document.getElementById('category-form').reset();
+      document.getElementById('edit-cat-id').value = '';
+      document.getElementById('cat-modal-title').textContent = 'Add Category';
+      modal.classList.add('open');
+    });
+
+    document.getElementById('close-category-modal').addEventListener('click', () => {
+      modal.classList.remove('open');
+    });
+
+    function openEditModal(c) {
+      document.getElementById('edit-cat-id').value = c.id;
+      document.getElementById('cat-modal-title').textContent = `Edit ${c.name}`;
+      document.getElementById('cat-name-input').value = c.name;
+      document.getElementById('cat-desc-input').value = c.description || '';
+      document.getElementById('cat-order-input').value = c.display_order || 0;
+      modal.classList.add('open');
+    }
+
+    document.getElementById('category-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-cat-id').value;
+      const saveBtn = document.getElementById('save-cat-btn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      const payload = {
+        name: document.getElementById('cat-name-input').value.trim(),
+        description: document.getElementById('cat-desc-input').value.trim(),
+        display_order: document.getElementById('cat-order-input').value
+      };
+
+      try {
+        if (id) {
+          await adminApiRequest(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+          playAdminSound('success');
+          showAdminToast(`Category "${payload.name}" updated`, 'success', 'Category Saved');
+        } else {
+          await adminApiRequest('/categories', { method: 'POST', body: JSON.stringify(payload) });
+          playAdminSound('success');
+          showAdminToast(`Category "${payload.name}" created`, 'success', 'Category Created');
+        }
+        modal.classList.remove('open');
+        loadCategories();
+      } catch (err) {
+        playAdminSound('error');
+        showAdminToast(err.message || 'Error saving category', 'error', 'Action Failed');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Category';
+      }
+    });
+
+    loadCategories();
+  </script>
+</body>
+</html>
